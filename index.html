@@ -147,6 +147,437 @@
     let currentHeaders = []; 
     let displayOrder = [];   
     let editIdx = -1;
+    let db; // IndexedDB reference
+    const DB_NAME = "BoothProDB";
+    const STORE_NAME = "ProjectStore";
+
+    // --- INDEXED DB FUNCTIONS (Fixes storage limit issues) ---
+    function openDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, 1);
+            request.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    db.createObjectStore(STORE_NAME);
+                }
+            };
+            request.onsuccess = (e) => {
+                db = e.target.result;
+                resolve(db);
+            };
+            request.onerror = (e) => reject("DB Error");
+        });
+    }
+
+    async function saveData() {
+        if(!db) await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, "readwrite");
+            const store = tx.objectStore(STORE_NAME);
+            const dataToSave = {
+                id: "current",
+                d: globalData,
+                h: currentHeaders,
+                order: displayOrder
+            };
+            const req = store.put(dataToSave, "current");
+            req.onsuccess = () => {
+                document.getElementById('status').innerText = "Data Saved Securely";
+                setTimeout(() => document.getElementById('status').innerText = `${globalData.length} Records`, 2000);
+                resolve();
+            };
+            req.onerror = () => reject("Save failed");
+        });
+    }
+
+    async function loadData() {
+        if(!db) await openDB();
+        return new Promise((resolve) => {
+            const tx = db.transaction(STORE_NAME, "readonly");
+            const store = tx.objectStore(STORE_NAME);
+            const req = store.get("current");
+            req.onsuccess = () => {
+                if(req.result) {
+                    globalData = req.result.d;
+                    currentHeaders = req.result.h;
+                    displayOrder = req.result.order || [...currentHeaders];
+                    initApp();
+                }
+                resolve();
+            };
+            req.onerror = () => resolve(null);
+        });
+    }
+
+    async function clearData() { 
+        if(confirm("Clear all data?")) { 
+            if(!db) await openDB();
+            const tx = db.transaction(STORE_NAME, "readwrite");
+            tx.objectStore(STORE_NAME).clear();
+            localStorage.clear(); 
+            location.reload(); 
+        } 
+    }
+    // --------------------------------------------------------
+
+    function handleExcel(input) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const wb = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+            const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""});
+            if(rows.length) {
+                globalData = rows;
+                currentHeaders = Object.keys(rows[0]).filter(k => k !== "Photo_Data" && k !== "Photo_Name");
+                displayOrder = [...currentHeaders]; 
+                initApp();
+                saveData(); // Save to DB
+            }
+        };
+        reader.readAsArrayBuffer(input.files[0]);
+    }
+
+    async function handleZip(input) {
+        document.getElementById('status').innerText = "Processing ZIP...";
+        const zip = new JSZip();
+        const contents = await zip.loadAsync(input.files[0]);
+        const imgs = {};
+        let rows = [];
+
+        for (const [name, file] of Object.entries(contents.files)) {
+             if (name.match(/\.(jpg|jpeg|png)$/i)) {
+                const simpleName = name.split('/').pop().toLowerCase();
+                const b64 = await file.async("base64");
+                imgs[simpleName] = `data:image/jpeg;base64,${b64}`;
+            }
+        }
+
+        for (const [name, file] of Object.entries(contents.files)) {
+            if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+                const b = await file.async("uint8array");
+                const wb = XLSX.read(b, {type:'array'});
+                rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""});
+                currentHeaders = Object.keys(rows[0]).filter(k => k !== "Photo_Data" && k !== "Photo_Name");
+                displayOrder = [...currentHeaders];
+            }
+        }
+
+        globalData = rows.map(r => {
+            const pCol = Object.keys(r).find(k => k.toLowerCase().includes('photo') || k.toLowerCase().includes('image'));
+            if(pCol) {
+                const fileNameInSheet = String(r[pCol]).trim().toLowerCase();
+                if(imgs[fileNameInSheet]) {
+                    r.Photo_Data = imgs[fileNameInSheet]; 
+                    r.Photo_Name = r[pCol]; 
+                }
+            }
+            return r;
+        });
+        initApp();
+        saveData(); // Save to DB
+    }
+
+    function initApp() {
+        document.getElementById('setupArea').classList.add('hidden');
+        document.getElementById('addFab').classList.remove('hidden');
+        renderList();
+    }
+
+    function showSummary() {
+        if(!globalData.length) return alert("Load data first");
+        
+        const container = document.getElementById('summaryBody');
+        container.innerHTML = `<div class="summary-container"></div>`;
+        const wrap = container.querySelector('.summary-container');
+
+        const total = globalData.length;
+        const withPhoto = globalData.filter(r => r.Photo_Data).length;
+        
+        wrap.innerHTML += `
+            <div class="summary-card" style="background: #e0e7ff; border-color: #c7d2fe;">
+                <strong class="summary-title" style="color:#4338ca; border-color:#c7d2fe;">Global Overview</strong>
+                <div class="stat-grid">
+                    <div class="stat-item"><span class="stat-label">Total Records</span><span class="stat-val">${total}</span></div>
+                    <div class="stat-item"><span class="stat-label">Photos Linked</span><span class="stat-val" style="color:var(--success)">${withPhoto}</span></div>
+                    <div class="stat-item"><span class="stat-label">Photos Missing</span><span class="stat-val" style="color:var(--accent)">${total - withPhoto}</span></div>
+                </div>
+            </div>
+        `;
+
+        const validFields = displayOrder.filter(k => k !== "Photo_Data" && k !== "Photo_Name");
+        validFields.forEach(h => {
+            let filled = 0;
+            let empty = 0;
+            const valueCounts = {};
+
+            globalData.forEach(row => {
+                const val = String(row[h] || "").trim();
+                if(val) { filled++; valueCounts[val] = (valueCounts[val] || 0) + 1; } else { empty++; }
+            });
+
+            const unique = Object.keys(valueCounts).length;
+            let topVal = "-";
+            let topCount = 0;
+            Object.entries(valueCounts).forEach(([k, v]) => {
+                if(v > topCount) { topVal = k; topCount = v; }
+            });
+            
+            let displayTop = `${topVal} <span style="font-weight:400; font-size:0.8em; color:#94a3b8;">(${topCount})</span>`;
+            if (filled === 0) displayTop = "<span style='color:#cbd5e1'>Empty Column</span>";
+            else if (unique === filled && filled > 1) displayTop = "All Unique";
+            else if (topVal.length > 15) displayTop = `${topVal.substring(0, 15)}... <span style="font-weight:400; font-size:0.8em;">(${topCount})</span>`;
+
+            wrap.innerHTML += `
+                <div class="summary-card">
+                    <strong class="summary-title">${h}</strong>
+                    <div class="stat-grid">
+                        <div class="stat-item"><span class="stat-label">Filled Rows</span><span class="stat-val" style="color:var(--success)">${filled}</span></div>
+                        <div class="stat-item"><span class="stat-label">Empty Rows</span><span class="stat-val" style="color:var(--accent)">${empty}</span></div>
+                        <div class="stat-item"><span class="stat-label">Unique Data</span><span class="stat-val">${unique}</span></div>
+                        <div class="stat-item"><span class="stat-label">Most Common</span><span class="stat-val">${displayTop}</span></div>
+                    </div>
+                </div>
+            `;
+        });
+        document.getElementById('summaryModal').style.display = 'flex';
+    }
+
+    function renderList(data = globalData) {
+        const list = document.getElementById('dataList');
+        list.innerHTML = "";
+        document.getElementById('status').innerText = `${data.length} Records`;
+
+        const validFields = displayOrder.filter(k => k !== "Photo_Data" && k !== "Photo_Name");
+        const titleKey = validFields[0]; 
+        const subKey = validFields[1]; 
+
+        data.forEach((row, i) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.onclick = () => openModal(globalData.indexOf(row));
+            
+            const titleVal = titleKey ? (row[titleKey] || "Empty") : "No Data";
+            const subVal = subKey ? `${subKey}: ${row[subKey] || '-'}` : "";
+            const imgSrc = row.Photo_Data || 'https://via.placeholder.com/65';
+
+            card.innerHTML = `
+                <img src="${imgSrc}" class="card-img" onclick="showFullImage(event, '${imgSrc}')">
+                <div>
+                    <div style="font-weight:bold; color:var(--primary); font-size:1.1rem;">${titleVal}</div>
+                    <div style="font-size:0.85rem; color:#64748b; margin-top: 3px;">${subVal}</div>
+                </div>
+            `;
+            list.appendChild(card);
+        });
+    }
+
+    function showFullImage(e, src) {
+        e.stopPropagation();
+        document.getElementById('fullImageDisplay').src = src;
+        document.getElementById('imageModal').style.display = 'flex';
+    }
+
+    function openModal(i) {
+        editIdx = i;
+        const row = globalData[i];
+        document.getElementById('editPreview').src = row.Photo_Data || "https://via.placeholder.com/100";
+        const container = document.getElementById('editFields');
+        container.innerHTML = "";
+
+        displayOrder.forEach(h => {
+            if(h === "Photo_Data" || h === "Photo_Name") return;
+            container.innerHTML += `
+                <div class="form-group">
+                    <label>${h}</label>
+                    <input type="text" id="edit-${h}" value="${row[h] || ''}">
+                </div>`;
+        });
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function openModalForNew() {
+        editIdx = -1;
+        document.getElementById('editPreview').src = "https://via.placeholder.com/100";
+        const container = document.getElementById('editFields');
+        container.innerHTML = "";
+        displayOrder.forEach(h => {
+            if(h === "Photo_Data" || h === "Photo_Name") return;
+            container.innerHTML += `<div class="form-group"><label>${h}</label><input type="text" id="edit-${h}" value=""></div>`;
+        });
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function openSettings() {
+        if(!currentHeaders.length && !displayOrder.length) return alert("Please load data first.");
+        const container = document.getElementById('reorderContainer');
+        container.innerHTML = "";
+        
+        displayOrder.forEach((header, index) => {
+            if(header === "Photo_Data" || header === "Photo_Name") return;
+            const item = document.createElement('div');
+            item.className = 'reorder-item';
+            
+            let badge = "";
+            if(index === 0) badge = `<span style="background:var(--primary); color:white; font-size:10px; padding:2px 6px; border-radius:4px; margin-right:5px;">TITLE</span>`;
+            if(index === 1) badge = `<span style="background:#94a3b8; color:white; font-size:10px; padding:2px 6px; border-radius:4px; margin-right:5px;">SUB</span>`;
+
+            item.innerHTML = `
+                <div style="display:flex; align-items:center;">
+                    ${badge}
+                    <span style="font-weight:600;">${header}</span>
+                </div>
+                <div class="reorder-btns">
+                    <button class="reorder-btn" onclick="moveHeader(${index}, -1)">↑</button>
+                    <button class="reorder-btn" onclick="moveHeader(${index}, 1)">↓</button>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+        document.getElementById('settingsModal').style.display = 'flex';
+    }
+
+    function moveHeader(index, direction) {
+        const newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= displayOrder.length) return;
+        [displayOrder[index], displayOrder[newIndex]] = [displayOrder[newIndex], displayOrder[index]];
+        openSettings();
+    }
+
+    function closeSettings() {
+        document.getElementById('settingsModal').style.display = 'none';
+        renderList();
+        saveData(); // Save new order
+    }
+
+    function processPhoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => document.getElementById('editPreview').src = e.target.result;
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function saveRecord() {
+        let row = editIdx === -1 ? {} : globalData[editIdx];
+        if(editIdx === -1) globalData.push(row);
+
+        displayOrder.forEach(h => {
+            const val = document.getElementById(`edit-${h}`);
+            if(val) row[h] = val.value;
+        });
+
+        row.Photo_Data = document.getElementById('editPreview').src;
+        if (row.Photo_Data.startsWith('data:image') && !row.Photo_Name) row.Photo_Name = `p_${Date.now()}.jpg`;
+
+        closeModal(); 
+        renderList(); 
+        saveData(); // Save to DB
+    }
+
+    async function exportZip() {
+        document.getElementById('status').innerText = "Creating ZIP...";
+        
+        const d = new Date();
+        const timeStr = `${d.getFullYear()}${d.getMonth()+1}${d.getDate()}_${d.getHours()}${d.getMinutes()}${d.getSeconds()}`;
+        const finalName = `Project_${timeStr}.zip`;
+
+        const zip = new JSZip();
+        const root = zip.folder("Project");
+        const imgDir = root.folder("Images");
+
+        let photoHeader = currentHeaders.find(k => k.toLowerCase().includes('photo') || k.toLowerCase().includes('image'));
+        if (!photoHeader) photoHeader = "Photo_Ref";
+
+        const clean = globalData.map(r => {
+            const c = {};
+            const allKeys = new Set([...currentHeaders, ...displayOrder]);
+            allKeys.forEach(h => {
+                if(h !== "Photo_Data" && h !== "Photo_Name") c[h] = r[h] || "";
+            });
+            if (r.Photo_Name) c[photoHeader] = r.Photo_Name;
+            return c; 
+        });
+
+        root.file("Data.xlsx", XLSX.write({SheetNames:["Data"], Sheets:{"Data":XLSX.utils.json_to_sheet(clean)}}, {bookType:'xlsx', type:'array'}));
+        
+        globalData.forEach(r => {
+            if(r.Photo_Data && r.Photo_Data.startsWith('data:image')) {
+                const fName = r.Photo_Name || `p_${Date.now()}.jpg`;
+                imgDir.file(fName, r.Photo_Data.split(',')[1], {base64:true});
+            }
+        });
+
+        const blob = await zip.generateAsync({type:"blob"});
+        
+        // Forced Download for APK/Webview
+        const a = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        a.href = url;
+        a.download = finalName;
+        document.body.appendChild(a);
+        a.click();
+        
+        setTimeout(() => {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            document.getElementById('status').innerText = `${globalData.length} Records`;
+        }, 100);
+    }
+
+    function filterList() {
+        const q = document.getElementById('search').value.toLowerCase();
+        renderList(globalData.filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(q))));
+    }
+
+    function closeModal() { document.getElementById('editModal').style.display = 'none'; }
+
+    // Init Logic on Load
+    window.onload = () => {
+        loadData(); // Load from DB
+    };
+</script>
+</body>
+</html>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn" onclick="saveRecord()" style="background:var(--primary); color:white; flex: 2;">Save</button>
+            <button class="btn" onclick="closeModal()" style="background:#f1f5f9; color: #64748b; flex: 1;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="settingsModal" class="modal">
+    <div class="modal-content">
+        <h3 style="margin-top:0">Interface Settings</h3>
+        <p style="font-size:0.8rem; color:#64748b;">
+            1. <b>First Item:</b> Bold Title.<br>
+            2. <b>Second Item:</b> Subtitle.
+        </p>
+        <div id="reorderContainer"></div>
+        <button class="btn" onclick="closeSettings()" style="width:100%; margin-top:20px; background:var(--primary); color:white;">Done & Apply</button>
+    </div>
+</div>
+
+<div id="summaryModal" class="modal">
+    <div class="modal-content">
+        <h3 style="margin-top: 0; border-bottom:1px solid #eee; padding-bottom:10px;">Detailed Analytics</h3>
+        <div id="summaryBody"></div>
+        <button class="btn" onclick="this.parentElement.parentElement.style.display='none'" style="width:100%; margin-top:20px; background:var(--primary); color:white;">Close</button>
+    </div>
+</div>
+
+<div id="imageModal" class="modal" onclick="this.style.display='none'" style="background:rgba(0,0,0,0.9);">
+    <img id="fullImageDisplay" style="max-width:95%; max-height:80vh; border-radius:12px;">
+</div>
+
+<div class="footer">
+    <span id="status">Waiting for data...</span>
+    <button class="btn btn-zip" onclick="exportZip()">Download ZIP</button>
+</div>
+
+<script>
+    let globalData = [];
+    let currentHeaders = []; 
+    let displayOrder = [];   
+    let editIdx = -1;
     const STORAGE_KEY = "BOOTH_PRO_V14"; 
 
     function clearData() { if(confirm("Clear all data?")) { localStorage.clear(); location.reload(); } }
@@ -469,3 +900,4 @@
 </script>
 </body>
 </html>
+
