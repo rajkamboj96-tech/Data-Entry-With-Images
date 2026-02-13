@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Default Pro App</title>
+    <title>App Default Pro</title>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
@@ -46,7 +46,6 @@
         .form-group label { display:block; font-size:0.75rem; font-weight:700; margin-bottom:6px; color: #64748b; text-transform: uppercase; }
         .form-group input { width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:10px; box-sizing: border-box; }
 
-        /* Summary Styles */
         .summary-container { display: flex; flex-direction: column; gap: 12px; }
         .summary-card { background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
         .summary-title { font-weight: bold; color: var(--primary); margin-bottom: 10px; display: block; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; font-size: 0.95rem; }
@@ -55,7 +54,6 @@
         .stat-label { color: #64748b; }
         .stat-val { font-weight: 700; color: #334155; }
 
-        /* Reorder Styles */
         .reorder-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; margin-bottom: 8px; border-radius: 10px; }
         .reorder-btns { display: flex; gap: 5px; }
         .reorder-btn { padding: 8px 12px; background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
@@ -72,7 +70,7 @@
     <div style="display: flex; flex-direction: column;">
         <h1 style="font-size: 1.2rem; margin:0; font-weight: 800;">
             App Default Pro 
-            <span style="font-size: 10px; font-weight: 400; margin-left: 9px; opacity: 0.9;">Made by Raj Kamboj 9465428299</span>
+            <span style="font-size: 10px; font-weight: 400; margin-left: 8px; opacity: 0.9;">made by Raj Kamboj 9465428299</span>
         </h1>
     </div>
     <div class="header-btns">
@@ -149,7 +147,7 @@
     let currentHeaders = []; 
     let displayOrder = [];   
     let editIdx = -1;
-    const STORAGE_KEY = "BOOTH_PRO_V12";
+    const STORAGE_KEY = "BOOTH_PRO_V14"; 
 
     function clearData() { if(confirm("Clear all data?")) { localStorage.clear(); location.reload(); } }
 
@@ -175,20 +173,32 @@
         let rows = [];
 
         for (const [name, file] of Object.entries(contents.files)) {
+             if (name.match(/\.(jpg|jpeg|png)$/i)) {
+                const simpleName = name.split('/').pop().toLowerCase();
+                const b64 = await file.async("base64");
+                imgs[simpleName] = `data:image/jpeg;base64,${b64}`;
+            }
+        }
+
+        for (const [name, file] of Object.entries(contents.files)) {
             if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
                 const b = await file.async("uint8array");
                 const wb = XLSX.read(b, {type:'array'});
                 rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""});
                 currentHeaders = Object.keys(rows[0]).filter(k => k !== "Photo_Data" && k !== "Photo_Name");
                 displayOrder = [...currentHeaders];
-            } else if (name.match(/\.(jpg|jpeg|png)$/i)) {
-                const b64 = await file.async("base64");
-                imgs[name.split('/').pop().toLowerCase()] = `data:image/jpeg;base64,${b64}`;
             }
         }
+
         globalData = rows.map(r => {
             const pCol = Object.keys(r).find(k => k.toLowerCase().includes('photo') || k.toLowerCase().includes('image'));
-            if(pCol && imgs[String(r[pCol]).toLowerCase()]) { r.Photo_Data = imgs[String(r[pCol]).toLowerCase()]; r.Photo_Name = r[pCol]; }
+            if(pCol) {
+                const fileNameInSheet = String(r[pCol]).trim().toLowerCase();
+                if(imgs[fileNameInSheet]) {
+                    r.Photo_Data = imgs[fileNameInSheet]; 
+                    r.Photo_Name = r[pCol]; 
+                }
+            }
             return r;
         });
         initApp();
@@ -201,7 +211,6 @@
         saveLocal();
     }
 
-    // --- REVISED SUMMARY LOGIC ---
     function showSummary() {
         if(!globalData.length) return alert("Load data first");
         
@@ -209,7 +218,6 @@
         container.innerHTML = `<div class="summary-container"></div>`;
         const wrap = container.querySelector('.summary-container');
 
-        // 1. Global Stats
         const total = globalData.length;
         const withPhoto = globalData.filter(r => r.Photo_Data).length;
         
@@ -224,9 +232,7 @@
             </div>
         `;
 
-        // 2. Column-by-Column Stats
         const validFields = displayOrder.filter(k => k !== "Photo_Data" && k !== "Photo_Name");
-        
         validFields.forEach(h => {
             let filled = 0;
             let empty = 0;
@@ -234,24 +240,16 @@
 
             globalData.forEach(row => {
                 const val = String(row[h] || "").trim();
-                if(val) {
-                    filled++;
-                    valueCounts[val] = (valueCounts[val] || 0) + 1;
-                } else {
-                    empty++;
-                }
+                if(val) { filled++; valueCounts[val] = (valueCounts[val] || 0) + 1; } else { empty++; }
             });
 
             const unique = Object.keys(valueCounts).length;
-            
-            // Calculate Most Frequent (Mode)
             let topVal = "-";
             let topCount = 0;
             Object.entries(valueCounts).forEach(([k, v]) => {
                 if(v > topCount) { topVal = k; topCount = v; }
             });
             
-            // Logic for readable "Top Value"
             let displayTop = `${topVal} <span style="font-weight:400; font-size:0.8em; color:#94a3b8;">(${topCount})</span>`;
             if (filled === 0) displayTop = "<span style='color:#cbd5e1'>Empty Column</span>";
             else if (unique === filled && filled > 1) displayTop = "All Unique";
@@ -269,7 +267,6 @@
                 </div>
             `;
         });
-
         document.getElementById('summaryModal').style.display = 'flex';
     }
 
@@ -404,9 +401,17 @@
     }
 
     async function exportZip() {
+        // --- 1. GENERATE DYNAMIC NAME ---
+        const d = new Date();
+        const timeStr = `${d.getFullYear()}${d.getMonth()+1}${d.getDate()}_${d.getHours()}${d.getMinutes()}${d.getSeconds()}`;
+        const finalName = `Project_${timeStr}.zip`;
+
         const zip = new JSZip();
         const root = zip.folder("Project");
         const imgDir = root.folder("Images");
+
+        let photoHeader = currentHeaders.find(k => k.toLowerCase().includes('photo') || k.toLowerCase().includes('image'));
+        if (!photoHeader) photoHeader = "Photo_Ref";
 
         const clean = globalData.map(r => {
             const c = {};
@@ -414,21 +419,34 @@
             allKeys.forEach(h => {
                 if(h !== "Photo_Data" && h !== "Photo_Name") c[h] = r[h] || "";
             });
-            const pCol = Object.keys(c).find(k => k.toLowerCase().includes('photo') || k.toLowerCase().includes('image'));
-            if (pCol && r.Photo_Name) c[pCol] = r.Photo_Name;
+            if (r.Photo_Name) c[photoHeader] = r.Photo_Name;
             return c; 
         });
 
         root.file("Data.xlsx", XLSX.write({SheetNames:["Data"], Sheets:{"Data":XLSX.utils.json_to_sheet(clean)}}, {bookType:'xlsx', type:'array'}));
+        
         globalData.forEach(r => {
-            if(r.Photo_Data && r.Photo_Data.startsWith('data:image')) imgDir.file(r.Photo_Name, r.Photo_Data.split(',')[1], {base64:true});
+            if(r.Photo_Data && r.Photo_Data.startsWith('data:image')) {
+                const fName = r.Photo_Name || `p_${Date.now()}.jpg`;
+                imgDir.file(fName, r.Photo_Data.split(',')[1], {base64:true});
+            }
         });
 
         const blob = await zip.generateAsync({type:"blob"});
+        
+        // --- 2. FORCED DOWNLOAD METHOD FOR ANDROID WEBVIEW ---
         const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = `Project.zip`;
+        const url = URL.createObjectURL(blob);
+        a.href = url;
+        a.download = finalName;
+        document.body.appendChild(a); // CRITICAL: Append to body
         a.click();
+        
+        // Cleanup
+        setTimeout(() => {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 100);
     }
 
     function filterList() {
