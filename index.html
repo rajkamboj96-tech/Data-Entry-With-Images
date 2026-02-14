@@ -31,8 +31,18 @@
         .entry-options { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; background: white; border-bottom: 1px solid var(--border); }
         .opt-card { border: 2px dashed #cbd5e1; padding: 20px; text-align: center; border-radius: 16px; cursor: pointer; background: #fff; transition: 0.3s; }
         
-        .search-area { padding: 12px 15px; background: white; border-bottom: 1px solid var(--border); display: flex; gap: 10px; }
-        .search-bar { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; outline: none; background: #f8fafc; }
+        /* SEARCH LAYOUT */
+        .search-area { padding: 12px 15px; background: white; border-bottom: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1.5fr; gap: 10px; align-items: center; }
+        
+        .search-select { 
+            padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; outline: none; background: #f1f5f9; font-weight: 600; color: var(--primary); width: 100%;
+            appearance: none; -webkit-appearance: none; 
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236366f1%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat; background-position: right .7em top 50%; background-size: .65em auto;
+        }
+        
+        .search-input-group { display: flex; gap: 5px; width: 100%; }
+        .search-bar { padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; outline: none; background: #f8fafc; width: 100%; }
 
         #dataList { padding: 15px; display: grid; gap: 15px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
         .card { background: white; border-radius: 16px; padding: 12px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); cursor: pointer; border: 1px solid #f1f5f9; }
@@ -43,7 +53,6 @@
         .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center; padding: 10px; box-sizing: border-box; }
         .modal-content { background:white; width:100%; max-width:500px; padding:20px; border-radius:20px; max-height:90vh; overflow-y:auto; position: relative; }
         
-        /* Close Button Styles */
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; color: #94a3b8; cursor: pointer; z-index: 10; line-height: 1; transition: 0.2s; }
         .close-btn:hover { color: var(--danger); transform: scale(1.1); }
         .close-btn-overlay { position: absolute; top: 30px; right: 30px; font-size: 45px; font-weight: bold; color: white; cursor: pointer; z-index: 2000; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
@@ -97,8 +106,14 @@
 </div>
 
 <div class="search-area">
-    <input type="text" class="search-bar" id="search" placeholder="Search record..." onkeyup="filterList()">
-    <button class="btn" style="background: #f1f5f9; color: var(--primary);" onclick="showSummary()">Summary</button>
+    <select id="filterColumn" class="search-select" onchange="filterList()">
+        <option value="all">Global Search</option>
+    </select>
+    
+    <div class="search-input-group">
+        <input type="text" class="search-bar" id="search" placeholder="Exact Value..." onkeyup="filterList()">
+        <button onclick="showSummary()" style="border:none; background: #e0e7ff; color:var(--primary); border-radius:10px; width:45px; cursor:pointer; font-size: 1.2rem;">📊</button>
+    </div>
 </div>
 
 <div id="dataList"></div>
@@ -108,7 +123,6 @@
 <div id="editModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeModal()">&times;</span>
-        
         <div style="display:flex; gap:15px; margin-bottom:20px; padding-right: 40px;">
             <img id="editPreview" style="width:100px; height:100px; border-radius:12px; object-fit:cover; border: 1px solid #eee;">
             <input type="file" accept="image/*" onchange="processPhoto(this)">
@@ -125,10 +139,7 @@
     <div class="modal-content">
         <span class="close-btn" onclick="closeSettings()">&times;</span>
         <h3 style="margin-top:0">Interface Settings</h3>
-        <p style="font-size:0.8rem; color:#64748b;">
-            1. <b>First Item:</b> Bold Title.<br>
-            2. <b>Second Item:</b> Subtitle.
-        </p>
+        <p style="font-size:0.8rem; color:#64748b;">1. <b>First Item:</b> Bold Title.<br>2. <b>Second Item:</b> Subtitle.</p>
         <div id="reorderContainer"></div>
         <button class="btn" onclick="closeSettings()" style="width:100%; margin-top:20px; background:var(--primary); color:white;">Done & Apply</button>
     </div>
@@ -162,20 +173,15 @@
     const DB_NAME = "BoothProDB";
     const STORE_NAME = "ProjectStore";
 
-    // --- INDEXED DB FUNCTIONS ---
+    // --- DB Logic ---
     function openDB() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, 1);
             request.onupgradeneeded = (e) => {
                 const db = e.target.result;
-                if (!db.objectStoreNames.contains(STORE_NAME)) {
-                    db.createObjectStore(STORE_NAME);
-                }
+                if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
             };
-            request.onsuccess = (e) => {
-                db = e.target.result;
-                resolve(db);
-            };
+            request.onsuccess = (e) => { db = e.target.result; resolve(db); };
             request.onerror = (e) => reject("DB Error");
         });
     }
@@ -224,7 +230,6 @@
             location.reload(); 
         } 
     }
-    // --------------------------------------------------------
 
     function handleExcel(input) {
         const reader = new FileReader();
@@ -285,7 +290,53 @@
     function initApp() {
         document.getElementById('setupArea').classList.add('hidden');
         document.getElementById('addFab').classList.remove('hidden');
+        updateFilterDropdown();
         renderList();
+    }
+
+    // --- CASE INSENSITIVE EXACT MATCH LOGIC ---
+    function updateFilterDropdown() {
+        const sel = document.getElementById('filterColumn');
+        const currentVal = sel.value;
+        sel.innerHTML = '<option value="all">Global Search</option>';
+        
+        const headers = displayOrder.length ? displayOrder : currentHeaders;
+        
+        headers.forEach(h => {
+            if(h !== "Photo_Data" && h !== "Photo_Name") {
+                const opt = document.createElement('option');
+                opt.value = h;
+                opt.innerText = h;
+                sel.appendChild(opt);
+            }
+        });
+        
+        if(currentVal && Array.from(sel.options).some(o => o.value === currentVal)) {
+            sel.value = currentVal;
+        }
+    }
+
+    function filterList() {
+        const column = document.getElementById('filterColumn').value;
+        // 1. Convert Search Query to Lowercase & Trim
+        const query = document.getElementById('search').value.toLowerCase().trim();
+        
+        if (!query) {
+            renderList(globalData);
+            return;
+        }
+
+        const filtered = globalData.filter(row => {
+            if (column === "all") {
+                // Check ALL columns: Convert value to string -> trim -> lowercase -> compare EXACTLY
+                return Object.values(row).some(v => String(v).trim().toLowerCase() === query);
+            } else {
+                // Check SPECIFIC column: Convert value to string -> trim -> lowercase -> compare EXACTLY
+                const val = String(row[column] || "").trim().toLowerCase();
+                return val === query;
+            }
+        });
+        renderList(filtered);
     }
 
     function showSummary() {
@@ -450,6 +501,7 @@
 
     function closeSettings() {
         document.getElementById('settingsModal').style.display = 'none';
+        updateFilterDropdown(); // Refresh search options
         renderList();
         saveData(); 
     }
@@ -527,16 +579,10 @@
         }, 100);
     }
 
-    function filterList() {
-        const q = document.getElementById('search').value.toLowerCase();
-        renderList(globalData.filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(q))));
-    }
-
     function closeModal() { document.getElementById('editModal').style.display = 'none'; }
 
-    // Init Logic on Load
     window.onload = () => {
-        loadData(); // Load from DB
+        loadData(); 
     };
 </script>
 </body>
