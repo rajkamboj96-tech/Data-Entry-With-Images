@@ -56,14 +56,7 @@
         
         .form-group input { flex: 1; width: 100%; padding: 15px 0; border: none; background: transparent; font-size: 1rem; color: #334155; outline: none; }
         .form-group input:focus { background: rgba(99, 102, 241, 0.05); }
-
-        /* --- NEW CSS FOR DIM PLACEHOLDER --- */
-        .form-group input::placeholder {
-            color: #cbd5e1; /* Very light grey */
-            font-style: italic; /* Slight italic for watermark feel */
-            opacity: 1; /* Ensure consistency across browsers */
-        }
-        /* ---------------------------------- */
+        .form-group input::placeholder { color: #cbd5e1; font-style: italic; opacity: 1; }
 
         .summary-container { display: flex; flex-direction: column; gap: 12px; }
         .summary-card { background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
@@ -269,16 +262,11 @@
 
     function handleExcel(input) {
         if (!input.files || !input.files[0]) return;
-        
-        // Prompt for password immediately
         const newPass = prompt("Set a password for this project (optional):\nClick Cancel to abort upload.");
-        
-        // REJECT if Cancel (null)
         if (newPass === null) {
-            input.value = ""; // Clear input
-            return; // Abort
+            input.value = ""; 
+            return; 
         }
-
         appPassword = newPass; 
         const file = input.files[0];
         const reader = new FileReader();
@@ -299,16 +287,11 @@
 
     async function handleZip(input) {
         if (!input.files || !input.files[0]) return;
-        
-        // Prompt for password immediately
         const newPass = prompt("Set a password for this project (optional):\nClick Cancel to abort upload.");
-        
-        // REJECT if Cancel (null)
         if (newPass === null) {
             input.value = ""; 
-            return; // Abort
+            return;
         }
-        
         appPassword = newPass;
         const file = input.files[0];
         document.getElementById('status').innerText = "Processing ZIP...";
@@ -397,25 +380,48 @@
             if(h !== "Photo_Data" && h !== "Photo_Name" && h !== "Thumbnail_Data") {
                 const opt = document.createElement('option');
                 opt.value = h;
-                opt.innerText = `Only with ${h}`; 
+                opt.innerText = `Search ${h}`; 
                 sel.appendChild(opt);
             }
         });
         if(currentVal && Array.from(sel.options).some(o => o.value === currentVal)) sel.value = currentVal;
     }
 
+    // --- STRICT EXACT MATCH LOGIC ---
     function filterList() {
         const selectedColumn = document.getElementById('filterColumn').value;
         const searchText = document.getElementById('search').value.toLowerCase().trim();
+        
+        const searchInput = document.getElementById('search');
+        if(selectedColumn === 'all') {
+            searchInput.placeholder = "Exact match search (all columns)...";
+        } else {
+            searchInput.placeholder = `Exact match in ${selectedColumn}...`;
+        }
+
         const filtered = globalData.filter(row => {
-            if (selectedColumn !== "all") {
-                const cellValue = row[selectedColumn];
-                if (!cellValue || String(cellValue).trim() === "") return false;
+            // Case 1: GLOBAL Search (Show All)
+            if (selectedColumn === "all") {
+                if (!searchText) return true;
+                // Search in all visual columns
+                return displayOrder.some(header => {
+                    if (header === "Photo_Data" || header === "Photo_Name" || header === "Thumbnail_Data") return false;
+                    const val = String(row[header] || "").toLowerCase().trim();
+                    return val === searchText; // STRICT MATCH
+                });
             }
+
+            // Case 2: SPECIFIC Column Search
+            const cellValue = row[selectedColumn];
+            // Must have data in this column
+            if (!cellValue || String(cellValue).trim() === "") return false;
+
             if (searchText) {
-                const rowHasText = Object.values(row).some(val => String(val).toLowerCase().includes(searchText));
-                if (!rowHasText) return false;
+                const valStr = String(cellValue).toLowerCase().trim();
+                // STRICT MATCH
+                if (valStr !== searchText) return false;
             }
+
             return true;
         });
         renderList(filtered);
