@@ -107,7 +107,7 @@
 </div>
 
 <div class="search-area">
-    <select id="filterColumn" class="search-select" onchange="filterList()">
+    <select id="filterColumn" class="search-select" onchange="onFilterChange()">
         <option value="all">Show All Records</option>
     </select>
     
@@ -128,9 +128,7 @@
             <img id="editPreview" style="width:60px; height:60px; border-radius:12px; object-fit:cover; border: 1px solid #eee; cursor:pointer;" onclick="showFullImageFromPreview()">
             <input type="file" accept="image/*" onchange="processPhoto(this)">
         </div>
-        
         <div id="editFields" style="border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9;"></div>
-        
         <div style="display: flex; gap: 10px; margin-top: 20px;">
             <button class="btn" onclick="saveRecord()" style="background:var(--primary); color:white; flex: 2;">Save</button>
             <button class="btn" onclick="deleteFromModal()" style="background:var(--danger); color:white; flex: 1;">Delete</button>
@@ -387,7 +385,14 @@
         if(currentVal && Array.from(sel.options).some(o => o.value === currentVal)) sel.value = currentVal;
     }
 
-    // --- STRICT EXACT MATCH LOGIC ---
+    // --- CHANGED: CLEAR TEXT BOX ON CHANGE ---
+    function onFilterChange() {
+        // Always clear text box when category changes
+        document.getElementById('search').value = ''; 
+        filterList();
+    }
+
+    // --- STRICT EXACT MATCH LOGIC (CASE INSENSITIVE) ---
     function filterList() {
         const selectedColumn = document.getElementById('filterColumn').value;
         const searchText = document.getElementById('search').value.toLowerCase().trim();
@@ -403,7 +408,6 @@
             // Case 1: GLOBAL Search (Show All)
             if (selectedColumn === "all") {
                 if (!searchText) return true;
-                // Search in all visual columns
                 return displayOrder.some(header => {
                     if (header === "Photo_Data" || header === "Photo_Name" || header === "Thumbnail_Data") return false;
                     const val = String(row[header] || "").toLowerCase().trim();
@@ -413,12 +417,10 @@
 
             // Case 2: SPECIFIC Column Search
             const cellValue = row[selectedColumn];
-            // Must have data in this column
             if (!cellValue || String(cellValue).trim() === "") return false;
 
             if (searchText) {
                 const valStr = String(cellValue).toLowerCase().trim();
-                // STRICT MATCH
                 if (valStr !== searchText) return false;
             }
 
@@ -719,7 +721,14 @@
         saveData(); 
     }
 
-    function closeModal() { document.getElementById('editModal').style.display = 'none'; }
+    // --- CHANGED: CLOSE MODAL RESETS SEARCH ---
+    function closeModal() { 
+        document.getElementById('editModal').style.display = 'none'; 
+        // Reset Search UI to "Show All" and clear text
+        document.getElementById('filterColumn').value = 'all';
+        document.getElementById('search').value = '';
+        filterList(); // Refresh list to show all
+    }
 
     window.onload = () => { loadData(); };
 </script>
