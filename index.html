@@ -246,7 +246,8 @@
         if (appPassword) {
             const input = prompt("This project is password protected.\nEnter password to reset:");
             if (input !== appPassword) {
-                return alert("Incorrect password. Reset cancelled.");
+                // Return explicitly cancels the reset if password is wrong
+                return alert("Incorrect password or Cancelled. Reset Aborted.");
             }
         }
         if(confirm("Are you sure? This will delete all data.")) { 
@@ -258,8 +259,20 @@
         } 
     }
 
+    // --- REJECT UPLOAD IF CANCELLED ---
     function handleExcel(input) {
         if (!input.files || !input.files[0]) return;
+        
+        // 1. Prompt FIRST.
+        const newPass = prompt("Set a password for this project (optional):\nClick Cancel to abort upload.");
+        
+        // 2. REJECT if Cancel (null)
+        if (newPass === null) {
+            input.value = ""; // Clear input so they can retry
+            return; // ABORT
+        }
+
+        appPassword = newPass; 
         const file = input.files[0];
         const reader = new FileReader();
         reader.onload = e => {
@@ -269,21 +282,27 @@
                 globalData = rows;
                 currentHeaders = Object.keys(rows[0]).filter(k => k !== "Photo_Data" && k !== "Photo_Name" && k !== "Thumbnail_Data");
                 displayOrder = [...currentHeaders]; 
-                
-                // Prompt for password SAFELY after load
-                const newPass = prompt("Set a password for this project (optional):\nLeave blank for no password.");
-                appPassword = newPass || ""; 
-
                 initApp();
                 saveData(); 
             }
         };
         reader.readAsArrayBuffer(file);
-        input.value = ""; // Reset to allow re-upload
+        input.value = ""; 
     }
 
     async function handleZip(input) {
         if (!input.files || !input.files[0]) return;
+        
+        // 1. Prompt FIRST.
+        const newPass = prompt("Set a password for this project (optional):\nClick Cancel to abort upload.");
+        
+        // 2. REJECT if Cancel (null)
+        if (newPass === null) {
+            input.value = ""; 
+            return; // ABORT
+        }
+        
+        appPassword = newPass;
         const file = input.files[0];
         document.getElementById('status').innerText = "Processing ZIP...";
         
@@ -330,17 +349,13 @@
                 return r;
             });
 
-            // Prompt for password SAFELY after load
-            const newPass = prompt("Set a password for this project (optional):\nLeave blank for no password.");
-            appPassword = newPass || ""; 
-
             initApp();
             saveData(); 
         } catch(e) {
             alert("Error reading ZIP file.");
             console.error(e);
         }
-        input.value = ""; // Reset to allow re-upload
+        input.value = "";
     }
 
     function initApp() {
