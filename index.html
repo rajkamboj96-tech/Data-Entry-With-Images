@@ -53,8 +53,17 @@
         .form-group { display: flex; align-items: center; margin-bottom: 0; border-bottom: 1px solid #f1f5f9; padding: 0; }
         .form-group:last-child { border-bottom: none; }
         .form-group label { display: block; flex: 0 0 35%; font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; padding: 15px 5px 15px 0; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
         .form-group input { flex: 1; width: 100%; padding: 15px 0; border: none; background: transparent; font-size: 1rem; color: #334155; outline: none; }
         .form-group input:focus { background: rgba(99, 102, 241, 0.05); }
+
+        /* --- NEW CSS FOR DIM PLACEHOLDER --- */
+        .form-group input::placeholder {
+            color: #cbd5e1; /* Very light grey */
+            font-style: italic; /* Slight italic for watermark feel */
+            opacity: 1; /* Ensure consistency across browsers */
+        }
+        /* ---------------------------------- */
 
         .summary-container { display: flex; flex-direction: column; gap: 12px; }
         .summary-card { background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
@@ -246,7 +255,6 @@
         if (appPassword) {
             const input = prompt("This project is password protected.\nEnter password to reset:");
             if (input !== appPassword) {
-                // Return explicitly cancels the reset if password is wrong
                 return alert("Incorrect password or Cancelled. Reset Aborted.");
             }
         }
@@ -259,17 +267,16 @@
         } 
     }
 
-    // --- REJECT UPLOAD IF CANCELLED ---
     function handleExcel(input) {
         if (!input.files || !input.files[0]) return;
         
-        // 1. Prompt FIRST.
+        // Prompt for password immediately
         const newPass = prompt("Set a password for this project (optional):\nClick Cancel to abort upload.");
         
-        // 2. REJECT if Cancel (null)
+        // REJECT if Cancel (null)
         if (newPass === null) {
-            input.value = ""; // Clear input so they can retry
-            return; // ABORT
+            input.value = ""; // Clear input
+            return; // Abort
         }
 
         appPassword = newPass; 
@@ -293,13 +300,13 @@
     async function handleZip(input) {
         if (!input.files || !input.files[0]) return;
         
-        // 1. Prompt FIRST.
+        // Prompt for password immediately
         const newPass = prompt("Set a password for this project (optional):\nClick Cancel to abort upload.");
         
-        // 2. REJECT if Cancel (null)
+        // REJECT if Cancel (null)
         if (newPass === null) {
             input.value = ""; 
-            return; // ABORT
+            return; // Abort
         }
         
         appPassword = newPass;
@@ -390,7 +397,7 @@
             if(h !== "Photo_Data" && h !== "Photo_Name" && h !== "Thumbnail_Data") {
                 const opt = document.createElement('option');
                 opt.value = h;
-                opt.innerText = `Only with ${h}`; 
+                opt.innerText = ` ${h}`; 
                 sel.appendChild(opt);
             }
         });
