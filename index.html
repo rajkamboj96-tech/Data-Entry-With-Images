@@ -187,6 +187,8 @@
     let contextIdx = -1; 
     let db; 
     let pressTimer; 
+    let appPassword = ""; 
+    
     const DB_NAME = "BoothProDB";
     const STORE_NAME = "ProjectStore";
     let tempFullImage = null;
@@ -209,7 +211,7 @@
         return new Promise((resolve, reject) => {
             const tx = db.transaction(STORE_NAME, "readwrite");
             const store = tx.objectStore(STORE_NAME);
-            const dataToSave = { id: "current", d: globalData, h: currentHeaders, order: displayOrder };
+            const dataToSave = { id: "current", d: globalData, h: currentHeaders, order: displayOrder, pass: appPassword };
             const req = store.put(dataToSave, "current");
             req.onsuccess = () => {
                 document.getElementById('status').innerText = "Data Saved Securely";
@@ -231,6 +233,7 @@
                     globalData = req.result.d;
                     currentHeaders = req.result.h;
                     displayOrder = req.result.order || [...currentHeaders];
+                    appPassword = req.result.pass || "";
                     initApp();
                 }
                 resolve();
@@ -240,7 +243,13 @@
     }
 
     async function clearData() { 
-        if(confirm("Clear all data?")) { 
+        if (appPassword) {
+            const input = prompt("This project is password protected.\nEnter password to reset:");
+            if (input !== appPassword) {
+                return alert("Incorrect password. Reset cancelled.");
+            }
+        }
+        if(confirm("Are you sure? This will delete all data.")) { 
             if(!db) await openDB();
             const tx = db.transaction(STORE_NAME, "readwrite");
             tx.objectStore(STORE_NAME).clear();
@@ -250,6 +259,8 @@
     }
 
     function handleExcel(input) {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
         const reader = new FileReader();
         reader.onload = e => {
             const wb = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
@@ -258,58 +269,78 @@
                 globalData = rows;
                 currentHeaders = Object.keys(rows[0]).filter(k => k !== "Photo_Data" && k !== "Photo_Name" && k !== "Thumbnail_Data");
                 displayOrder = [...currentHeaders]; 
+                
+                // Prompt for password SAFELY after load
+                const newPass = prompt("Set a password for this project (optional):\nLeave blank for no password.");
+                appPassword = newPass || ""; 
+
                 initApp();
                 saveData(); 
             }
         };
-        reader.readAsArrayBuffer(input.files[0]);
+        reader.readAsArrayBuffer(file);
+        input.value = ""; // Reset to allow re-upload
     }
 
     async function handleZip(input) {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
         document.getElementById('status').innerText = "Processing ZIP...";
+        
         const zip = new JSZip();
-        const contents = await zip.loadAsync(input.files[0]);
-        const imgs = {};
-        const thumbs = {};
-        let rows = [];
+        try {
+            const contents = await zip.loadAsync(file);
+            const imgs = {};
+            const thumbs = {};
+            let rows = [];
 
-        for (const [name, file] of Object.entries(contents.files)) {
-             if (name.match(/\.(jpg|jpeg|png)$/i) && !name.startsWith('__MACOSX')) {
-                const simpleName = name.split('/').pop().toLowerCase();
-                const b64 = await file.async("base64");
-                const finalB64 = `data:image/jpeg;base64,${b64}`;
-                if(name.includes('Thumbnails/')) {
-                    thumbs[simpleName] = finalB64;
-                } else {
-                    imgs[simpleName] = finalB64;
+            for (const [name, file] of Object.entries(contents.files)) {
+                 if (name.match(/\.(jpg|jpeg|png)$/i) && !name.startsWith('__MACOSX')) {
+                    const simpleName = name.split('/').pop().toLowerCase();
+                    const b64 = await file.async("base64");
+                    const finalB64 = `data:image/jpeg;base64,${b64}`;
+                    if(name.includes('Thumbnails/')) {
+                        thumbs[simpleName] = finalB64;
+                    } else {
+                        imgs[simpleName] = finalB64;
+                    }
                 }
             }
-        }
 
-        for (const [name, file] of Object.entries(contents.files)) {
-            if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
-                const b = await file.async("uint8array");
-                const wb = XLSX.read(b, {type:'array'});
-                rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""});
-                currentHeaders = Object.keys(rows[0]).filter(k => k !== "Photo_Data" && k !== "Photo_Name" && k !== "Thumbnail_Data");
-                displayOrder = [...currentHeaders];
-            }
-        }
-
-        globalData = rows.map(r => {
-            const pCol = Object.keys(r).find(k => k.toLowerCase().includes('photo') || k.toLowerCase().includes('image'));
-            if(pCol) {
-                const fileNameInSheet = String(r[pCol]).trim().toLowerCase();
-                if(imgs[fileNameInSheet]) {
-                    r.Photo_Data = imgs[fileNameInSheet]; 
-                    r.Thumbnail_Data = thumbs[fileNameInSheet] || imgs[fileNameInSheet]; 
-                    r.Photo_Name = r[pCol]; 
+            for (const [name, file] of Object.entries(contents.files)) {
+                if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+                    const b = await file.async("uint8array");
+                    const wb = XLSX.read(b, {type:'array'});
+                    rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""});
+                    currentHeaders = Object.keys(rows[0]).filter(k => k !== "Photo_Data" && k !== "Photo_Name" && k !== "Thumbnail_Data");
+                    displayOrder = [...currentHeaders];
                 }
             }
-            return r;
-        });
-        initApp();
-        saveData(); 
+
+            globalData = rows.map(r => {
+                const pCol = Object.keys(r).find(k => k.toLowerCase().includes('photo') || k.toLowerCase().includes('image'));
+                if(pCol) {
+                    const fileNameInSheet = String(r[pCol]).trim().toLowerCase();
+                    if(imgs[fileNameInSheet]) {
+                        r.Photo_Data = imgs[fileNameInSheet]; 
+                        r.Thumbnail_Data = thumbs[fileNameInSheet] || imgs[fileNameInSheet]; 
+                        r.Photo_Name = r[pCol]; 
+                    }
+                }
+                return r;
+            });
+
+            // Prompt for password SAFELY after load
+            const newPass = prompt("Set a password for this project (optional):\nLeave blank for no password.");
+            appPassword = newPass || ""; 
+
+            initApp();
+            saveData(); 
+        } catch(e) {
+            alert("Error reading ZIP file.");
+            console.error(e);
+        }
+        input.value = ""; // Reset to allow re-upload
     }
 
     function initApp() {
@@ -319,7 +350,6 @@
         renderList();
     }
 
-    // --- AGGRESSIVE COMPRESSION LOGIC (Target 10-20KB) ---
     function createThumbnail(base64, targetWidth) {
         return new Promise((resolve) => {
             const img = new Image();
@@ -406,8 +436,6 @@
 
             const titleVal = titleKey ? (row[titleKey] || "Empty") : "No Data";
             const subVal = subKey ? `${subKey}: ${row[subKey] || '-'}` : "";
-            
-            // Prefer Thumbnail for List, Fallback to Photo
             const thumbSrc = row.Thumbnail_Data || row.Photo_Data || 'https://via.placeholder.com/65';
             const fullSrc = row.Photo_Data || thumbSrc; 
 
@@ -535,7 +563,6 @@
         closeModal(); renderList(); saveData(); 
     }
 
-    // --- UPDATED EXPORT ZIP FUNCTION ---
     async function exportZip() {
         document.getElementById('status').innerText = "Creating ZIP... (Please Wait)";
         const d = new Date();
@@ -562,24 +589,18 @@
 
         root.file("Data.xlsx", XLSX.write({SheetNames:["Data"], Sheets:{"Data":XLSX.utils.json_to_sheet(clean)}}, {bookType:'xlsx', type:'array'}));
         
-        // Loop through data using a FOR loop to allow AWAIT
         for (const r of globalData) {
             if(r.Photo_Data && r.Photo_Data.startsWith('data:image')) {
                 const fName = r.Photo_Name || `p_${Date.now()}.jpg`;
                 
-                // 1. SAVE FULL IMAGE
                 imgDir.file(fName, r.Photo_Data.split(',')[1], {base64:true});
                 
-                // 2. ENSURE THUMBNAIL EXISTS
+                // GENERATE THUMBNAIL IF MISSING
                 let thumbData = r.Thumbnail_Data;
-                
-                // If missing (old data), generate it NOW
                 if (!thumbData) {
                     thumbData = await createThumbnail(r.Photo_Data, 180);
-                    r.Thumbnail_Data = thumbData; // Save back to object for next time
+                    r.Thumbnail_Data = thumbData; 
                 }
-
-                // 3. SAVE THUMBNAIL
                 thumbDir.file(fName, thumbData.split(',')[1], {base64:true});
             }
         }
