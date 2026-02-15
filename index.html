@@ -17,7 +17,7 @@
             --danger: #ef4444;
         }
         
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: #334155; user-select: none; /* Prevent text selection during long press */ }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: #334155; user-select: none; }
 
         header { 
             background: linear-gradient(135deg, var(--primary), var(--accent)); 
@@ -32,23 +32,13 @@
         .opt-card { border: 2px dashed #cbd5e1; padding: 20px; text-align: center; border-radius: 16px; cursor: pointer; background: #fff; transition: 0.3s; }
         
         .search-area { padding: 12px 15px; background: white; border-bottom: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1.5fr; gap: 10px; align-items: center; }
-        
-        .search-select { 
-            padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; outline: none; background: #f1f5f9; font-weight: 600; color: var(--primary); width: 100%;
-            appearance: none; -webkit-appearance: none; 
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236366f1%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat; background-position: right .7em top 50%; background-size: .65em auto;
-        }
-        
+        .search-select { padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; outline: none; background: #f1f5f9; font-weight: 600; color: var(--primary); width: 100%; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236366f1%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right .7em top 50%; background-size: .65em auto; }
         .search-input-group { display: flex; gap: 5px; width: 100%; }
         .search-bar { padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; outline: none; background: #f8fafc; width: 100%; }
 
         #dataList { padding: 15px; display: grid; gap: 15px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-        
-        /* Added touch-action manipulation for better touch handling */
         .card { background: white; border-radius: 16px; padding: 12px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); cursor: pointer; border: 1px solid #f1f5f9; touch-action: pan-y; -webkit-tap-highlight-color: transparent; transition: transform 0.1s; }
         .card:active { transform: scale(0.98); }
-        
         .card-img { width: 65px; height: 65px; border-radius: 12px; object-fit: cover; background: #f1f5f9; flex-shrink: 0; }
         
         .fab { position: fixed; bottom: 85px; right: 20px; width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 15px rgba(99, 102, 241, 0.4); font-size: 32px; border: none; z-index: 100; }
@@ -60,9 +50,11 @@
         .close-btn:hover { color: var(--danger); transform: scale(1.1); }
         .close-btn-overlay { position: absolute; top: 30px; right: 30px; font-size: 45px; font-weight: bold; color: white; cursor: pointer; z-index: 2000; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
 
-        .form-group { margin-bottom: 14px; }
-        .form-group label { display:block; font-size:0.75rem; font-weight:700; margin-bottom:6px; color: #64748b; text-transform: uppercase; }
-        .form-group input { width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:10px; box-sizing: border-box; }
+        .form-group { display: flex; align-items: center; margin-bottom: 0; border-bottom: 1px solid #f1f5f9; padding: 0; }
+        .form-group:last-child { border-bottom: none; }
+        .form-group label { display: block; flex: 0 0 35%; font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; padding: 15px 5px 15px 0; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .form-group input { flex: 1; width: 100%; padding: 15px 0; border: none; background: transparent; font-size: 1rem; color: #334155; outline: none; }
+        .form-group input:focus { background: rgba(99, 102, 241, 0.05); }
 
         .summary-container { display: flex; flex-direction: column; gap: 12px; }
         .summary-card { background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
@@ -81,7 +73,6 @@
         .btn-zip { background: var(--success); color: white; }
         .hidden { display: none !important; }
 
-        /* Context Menu Button Styles */
         .context-btn { width: 100%; padding: 15px; text-align: left; background: white; border: none; border-bottom: 1px solid #f1f5f9; font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 10px; }
         .context-btn:last-child { border-bottom: none; }
         .context-btn:hover { background: #f8fafc; }
@@ -131,16 +122,16 @@
 <div id="editModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeModal()">&times;</span>
-        <div style="display:flex; gap:15px; margin-bottom:20px; padding-right: 40px;">
-            <img id="editPreview" style="width:100px; height:100px; border-radius:12px; object-fit:cover; border: 1px solid #eee;">
+        <div style="display:flex; gap:15px; margin-bottom:20px; padding-right: 40px; align-items: center;">
+            <img id="editPreview" style="width:60px; height:60px; border-radius:12px; object-fit:cover; border: 1px solid #eee; cursor:pointer;" onclick="showFullImageFromPreview()">
             <input type="file" accept="image/*" onchange="processPhoto(this)">
         </div>
-        <div id="editFields"></div>
+        
+        <div id="editFields" style="border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9;"></div>
+        
         <div style="display: flex; gap: 10px; margin-top: 20px;">
             <button class="btn" onclick="saveRecord()" style="background:var(--primary); color:white; flex: 2;">Save</button>
-            
             <button class="btn" onclick="deleteFromModal()" style="background:var(--danger); color:white; flex: 1;">Delete</button>
-            
             <button class="btn" onclick="closeModal()" style="background:#f1f5f9; color: #64748b; flex: 1;">Cancel</button>
         </div>
     </div>
@@ -152,15 +143,9 @@
             <span>Options</span>
             <span onclick="closeContextModal()" style="cursor: pointer;">&times;</span>
         </div>
-        <button class="context-btn" onclick="copyCardData()">
-            <span>📋</span> Copy Text
-        </button>
-        <button class="context-btn" onclick="duplicateRecord()">
-            <span>📑</span> Duplicate Record
-        </button>
-        <button class="context-btn" onclick="deleteFromContext()" style="color: var(--danger);">
-            <span>🗑</span> Delete
-        </button>
+        <button class="context-btn" onclick="copyCardData()"><span>📋</span> Copy Text</button>
+        <button class="context-btn" onclick="duplicateRecord()"><span>📑</span> Duplicate Record</button>
+        <button class="context-btn" onclick="deleteFromContext()" style="color: var(--danger);"><span>🗑</span> Delete</button>
         <div style="height: 20px;"></div>
     </div>
 </div>
@@ -199,13 +184,14 @@
     let currentHeaders = []; 
     let displayOrder = [];   
     let editIdx = -1;
-    let contextIdx = -1; // Tracks which card was long-pressed
+    let contextIdx = -1; 
     let db; 
-    let pressTimer; // Timer for long press
+    let pressTimer; 
     const DB_NAME = "BoothProDB";
     const STORE_NAME = "ProjectStore";
+    let tempFullImage = null;
+    let tempThumbImage = null;
 
-    // --- DB Logic ---
     function openDB() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, 1);
@@ -270,7 +256,7 @@
             const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""});
             if(rows.length) {
                 globalData = rows;
-                currentHeaders = Object.keys(rows[0]).filter(k => k !== "Photo_Data" && k !== "Photo_Name");
+                currentHeaders = Object.keys(rows[0]).filter(k => k !== "Photo_Data" && k !== "Photo_Name" && k !== "Thumbnail_Data");
                 displayOrder = [...currentHeaders]; 
                 initApp();
                 saveData(); 
@@ -284,13 +270,19 @@
         const zip = new JSZip();
         const contents = await zip.loadAsync(input.files[0]);
         const imgs = {};
+        const thumbs = {};
         let rows = [];
 
         for (const [name, file] of Object.entries(contents.files)) {
-             if (name.match(/\.(jpg|jpeg|png)$/i)) {
+             if (name.match(/\.(jpg|jpeg|png)$/i) && !name.startsWith('__MACOSX')) {
                 const simpleName = name.split('/').pop().toLowerCase();
                 const b64 = await file.async("base64");
-                imgs[simpleName] = `data:image/jpeg;base64,${b64}`;
+                const finalB64 = `data:image/jpeg;base64,${b64}`;
+                if(name.includes('Thumbnails/')) {
+                    thumbs[simpleName] = finalB64;
+                } else {
+                    imgs[simpleName] = finalB64;
+                }
             }
         }
 
@@ -299,7 +291,7 @@
                 const b = await file.async("uint8array");
                 const wb = XLSX.read(b, {type:'array'});
                 rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""});
-                currentHeaders = Object.keys(rows[0]).filter(k => k !== "Photo_Data" && k !== "Photo_Name");
+                currentHeaders = Object.keys(rows[0]).filter(k => k !== "Photo_Data" && k !== "Photo_Name" && k !== "Thumbnail_Data");
                 displayOrder = [...currentHeaders];
             }
         }
@@ -310,6 +302,7 @@
                 const fileNameInSheet = String(r[pCol]).trim().toLowerCase();
                 if(imgs[fileNameInSheet]) {
                     r.Photo_Data = imgs[fileNameInSheet]; 
+                    r.Thumbnail_Data = thumbs[fileNameInSheet] || imgs[fileNameInSheet]; 
                     r.Photo_Name = r[pCol]; 
                 }
             }
@@ -326,28 +319,42 @@
         renderList();
     }
 
+    // --- AGGRESSIVE COMPRESSION LOGIC (Target 10-20KB) ---
+    function createThumbnail(base64, targetWidth) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.src = base64;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const scale = targetWidth / img.width;
+                canvas.width = targetWidth;
+                canvas.height = img.height * scale;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL('image/jpeg', 0.6)); 
+            };
+        });
+    }
+
     function updateFilterDropdown() {
         const sel = document.getElementById('filterColumn');
         const currentVal = sel.value;
         sel.innerHTML = '<option value="all">Show All Records</option>';
         const headers = displayOrder.length ? displayOrder : currentHeaders;
         headers.forEach(h => {
-            if(h !== "Photo_Data" && h !== "Photo_Name") {
+            if(h !== "Photo_Data" && h !== "Photo_Name" && h !== "Thumbnail_Data") {
                 const opt = document.createElement('option');
                 opt.value = h;
                 opt.innerText = `Only with ${h}`; 
                 sel.appendChild(opt);
             }
         });
-        if(currentVal && Array.from(sel.options).some(o => o.value === currentVal)) {
-            sel.value = currentVal;
-        }
+        if(currentVal && Array.from(sel.options).some(o => o.value === currentVal)) sel.value = currentVal;
     }
 
     function filterList() {
         const selectedColumn = document.getElementById('filterColumn').value;
         const searchText = document.getElementById('search').value.toLowerCase().trim();
-        
         const filtered = globalData.filter(row => {
             if (selectedColumn !== "all") {
                 const cellValue = row[selectedColumn];
@@ -366,8 +373,7 @@
         const list = document.getElementById('dataList');
         list.innerHTML = "";
         document.getElementById('status').innerText = `${data.length} Records`;
-
-        const validFields = displayOrder.filter(k => k !== "Photo_Data" && k !== "Photo_Name");
+        const validFields = displayOrder.filter(k => k !== "Photo_Data" && k !== "Photo_Name" && k !== "Thumbnail_Data");
         const titleKey = validFields[0]; 
         const subKey = validFields[1]; 
 
@@ -375,25 +381,17 @@
             const originalIndex = globalData.indexOf(row);
             const card = document.createElement('div');
             card.className = 'card';
-            
-            // --- LONG PRESS LOGIC START ---
             let isLongPress = false;
-            
-            // Touch Events (Mobile)
             card.addEventListener('touchstart', (e) => {
                 isLongPress = false;
                 pressTimer = setTimeout(() => {
                     isLongPress = true;
-                    // Trigger haptic feedback if available
                     if (window.navigator && window.navigator.vibrate) navigator.vibrate(50); 
                     openContextMenu(originalIndex);
-                }, 800); // 800ms wait
+                }, 800);
             }, {passive: true});
-
             card.addEventListener('touchend', () => clearTimeout(pressTimer));
-            card.addEventListener('touchmove', () => clearTimeout(pressTimer)); // Cancel on scroll
-
-            // Mouse Events (Desktop)
+            card.addEventListener('touchmove', () => clearTimeout(pressTimer));
             card.addEventListener('mousedown', () => {
                 isLongPress = false;
                 pressTimer = setTimeout(() => {
@@ -403,143 +401,121 @@
             });
             card.addEventListener('mouseup', () => clearTimeout(pressTimer));
             card.addEventListener('mouseleave', () => clearTimeout(pressTimer));
-
-            // Click Handling (only if NOT long press)
-            card.onclick = (e) => {
-                if(!isLongPress) openModal(originalIndex);
-            };
-            
-            // Prevent Default Right Click context menu
-            card.oncontextmenu = (e) => {
-                e.preventDefault();
-                openContextMenu(originalIndex);
-                return false;
-            };
-            // --- LONG PRESS LOGIC END ---
+            card.onclick = (e) => { if(!isLongPress) openModal(originalIndex); };
+            card.oncontextmenu = (e) => { e.preventDefault(); openContextMenu(originalIndex); return false; };
 
             const titleVal = titleKey ? (row[titleKey] || "Empty") : "No Data";
             const subVal = subKey ? `${subKey}: ${row[subKey] || '-'}` : "";
-            const imgSrc = row.Photo_Data || 'https://via.placeholder.com/65';
+            
+            // Prefer Thumbnail for List, Fallback to Photo
+            const thumbSrc = row.Thumbnail_Data || row.Photo_Data || 'https://via.placeholder.com/65';
+            const fullSrc = row.Photo_Data || thumbSrc; 
 
             card.innerHTML = `
-                <img src="${imgSrc}" class="card-img" onclick="showFullImage(event, '${imgSrc}')">
-                <div style="pointer-events: none;"> <div style="font-weight:bold; color:var(--primary); font-size:1.1rem;">${titleVal}</div>
+                <img src="${thumbSrc}" class="card-img" onclick="showFullImage(event, '${fullSrc}')">
+                <div style="pointer-events: none;">
+                    <div style="font-weight:bold; color:var(--primary); font-size:1.1rem;">${titleVal}</div>
                     <div style="font-size:0.85rem; color:#64748b; margin-top: 3px;">${subVal}</div>
                 </div>
             `;
             list.appendChild(card);
         });
-        
         if(data.length === 0) list.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8;">No matches found.</div>`;
     }
 
-    // --- CONTEXT MENU FUNCTIONS ---
-    function openContextMenu(index) {
-        contextIdx = index;
-        document.getElementById('contextModal').style.display = 'flex';
-    }
-
-    function closeContextModal() {
-        document.getElementById('contextModal').style.display = 'none';
-        contextIdx = -1;
-    }
+    function openContextMenu(index) { contextIdx = index; document.getElementById('contextModal').style.display = 'flex'; }
+    function closeContextModal() { document.getElementById('contextModal').style.display = 'none'; contextIdx = -1; }
 
     function copyCardData() {
         if (contextIdx === -1) return;
         const row = globalData[contextIdx];
-        
-        // Create text representation
         let textToCopy = "";
         displayOrder.forEach(h => {
-             if(h !== "Photo_Data" && h !== "Photo_Name" && row[h]) {
-                 textToCopy += `${h}: ${row[h]}\n`;
-             }
+             if(h !== "Photo_Data" && h !== "Photo_Name" && h !== "Thumbnail_Data" && row[h]) textToCopy += `${h}: ${row[h]}\n`;
         });
-
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            alert("Data copied to clipboard!");
-            closeContextModal();
-        }).catch(err => {
-            alert("Failed to copy.");
-        });
+        navigator.clipboard.writeText(textToCopy).then(() => { alert("Data copied to clipboard!"); closeContextModal(); });
     }
 
     function duplicateRecord() {
         if (contextIdx === -1) return;
         const original = globalData[contextIdx];
-        const copy = {...original}; // Shallow copy
-        
-        // Add " - Copy" to the first available text field to distinguish
+        const copy = {...original}; 
         const firstKey = displayOrder.find(k => k !== "Photo_Data");
         if(firstKey) copy[firstKey] = copy[firstKey] + " - Copy";
-        
-        globalData.splice(contextIdx + 1, 0, copy); // Insert after original
-        saveData();
-        renderList();
-        closeContextModal();
+        globalData.splice(contextIdx + 1, 0, copy);
+        saveData(); renderList(); closeContextModal();
     }
 
     function deleteFromContext() {
         if(contextIdx === -1) return;
         if(confirm("Permanently delete this record?")) {
             globalData.splice(contextIdx, 1);
-            saveData();
-            renderList();
-            closeContextModal();
+            saveData(); renderList(); closeContextModal();
         }
     }
 
-    // --- STANDARD FUNCTIONS ---
     function showFullImage(e, src) {
-        e.stopPropagation(); // Don't trigger card click
+        e.stopPropagation();
         document.getElementById('fullImageDisplay').src = src;
         document.getElementById('imageModal').style.display = 'flex';
+    }
+    
+    function showFullImageFromPreview() {
+        const src = tempFullImage || document.getElementById('editPreview').src;
+        if(src && !src.includes('placeholder')) {
+             document.getElementById('fullImageDisplay').src = src;
+             document.getElementById('imageModal').style.display = 'flex';
+        }
     }
 
     function openModal(i) {
         editIdx = i;
         const row = globalData[i];
-        document.getElementById('editPreview').src = row.Photo_Data || "https://via.placeholder.com/100";
+        const imgSrc = row.Thumbnail_Data || row.Photo_Data || "https://via.placeholder.com/100";
+        document.getElementById('editPreview').src = imgSrc;
+        tempFullImage = row.Photo_Data; 
+        tempThumbImage = row.Thumbnail_Data;
         const container = document.getElementById('editFields');
         container.innerHTML = "";
-
         displayOrder.forEach(h => {
-            if(h === "Photo_Data" || h === "Photo_Name") return;
-            container.innerHTML += `
-                <div class="form-group">
-                    <label>${h}</label>
-                    <input type="text" id="edit-${h}" value="${row[h] || ''}">
-                </div>`;
+            if(h === "Photo_Data" || h === "Photo_Name" || h === "Thumbnail_Data") return;
+            container.innerHTML += `<div class="form-group"><label>${h}</label><input type="text" id="edit-${h}" value="${row[h] || ''}" placeholder="Enter ${h}"></div>`;
         });
         document.getElementById('editModal').style.display = 'flex';
     }
 
     function openModalForNew() {
         editIdx = -1;
+        tempFullImage = null;
+        tempThumbImage = null;
         document.getElementById('editPreview').src = "https://via.placeholder.com/100";
         const container = document.getElementById('editFields');
         container.innerHTML = "";
         displayOrder.forEach(h => {
-            if(h === "Photo_Data" || h === "Photo_Name") return;
-            container.innerHTML += `<div class="form-group"><label>${h}</label><input type="text" id="edit-${h}" value=""></div>`;
+            if(h === "Photo_Data" || h === "Photo_Name" || h === "Thumbnail_Data") return;
+            container.innerHTML += `<div class="form-group"><label>${h}</label><input type="text" id="edit-${h}" value="" placeholder="Enter ${h}"></div>`;
         });
         document.getElementById('editModal').style.display = 'flex';
     }
 
     function deleteFromModal() {
-        if (editIdx === -1) return; // Can't delete a new unsaved record
+        if (editIdx === -1) return;
         if(confirm("Are you sure you want to delete this record?")) {
             globalData.splice(editIdx, 1);
-            saveData();
-            renderList();
-            closeModal();
+            saveData(); renderList(); closeModal();
         }
     }
 
     function processPhoto(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
-            reader.onload = e => document.getElementById('editPreview').src = e.target.result;
+            reader.onload = async (e) => {
+                const fullBase64 = e.target.result;
+                tempFullImage = fullBase64;
+                const thumbBase64 = await createThumbnail(fullBase64, 180);
+                tempThumbImage = thumbBase64;
+                document.getElementById('editPreview').src = thumbBase64;
+            };
             reader.readAsDataURL(input.files[0]);
         }
     }
@@ -547,28 +523,29 @@
     function saveRecord() {
         let row = editIdx === -1 ? {} : globalData[editIdx];
         if(editIdx === -1) globalData.push(row);
-
         displayOrder.forEach(h => {
             const val = document.getElementById(`edit-${h}`);
             if(val) row[h] = val.value;
         });
-
-        row.Photo_Data = document.getElementById('editPreview').src;
-        if (row.Photo_Data.startsWith('data:image') && !row.Photo_Name) row.Photo_Name = `p_${Date.now()}.jpg`;
-
-        closeModal(); 
-        renderList(); 
-        saveData(); 
+        if(tempFullImage) {
+            row.Photo_Data = tempFullImage;
+            row.Thumbnail_Data = tempThumbImage; 
+            if (row.Photo_Data.startsWith('data:image') && !row.Photo_Name) row.Photo_Name = `p_${Date.now()}.jpg`;
+        }
+        closeModal(); renderList(); saveData(); 
     }
 
-    function exportZip() {
-        document.getElementById('status').innerText = "Creating ZIP...";
+    // --- UPDATED EXPORT ZIP FUNCTION ---
+    async function exportZip() {
+        document.getElementById('status').innerText = "Creating ZIP... (Please Wait)";
         const d = new Date();
         const timeStr = `${d.getFullYear()}${d.getMonth()+1}${d.getDate()}_${d.getHours()}${d.getMinutes()}${d.getSeconds()}`;
         const finalName = `Project_${timeStr}.zip`;
         const zip = new JSZip();
+        
         const root = zip.folder("Project");
-        const imgDir = root.folder("Images");
+        const imgDir = root.folder("Images");      
+        const thumbDir = root.folder("Thumbnails"); 
 
         let photoHeader = currentHeaders.find(k => k.toLowerCase().includes('photo') || k.toLowerCase().includes('image'));
         if (!photoHeader) photoHeader = "Photo_Ref";
@@ -577,7 +554,7 @@
             const c = {};
             const allKeys = new Set([...currentHeaders, ...displayOrder]);
             allKeys.forEach(h => {
-                if(h !== "Photo_Data" && h !== "Photo_Name") c[h] = r[h] || "";
+                if(h !== "Photo_Data" && h !== "Photo_Name" && h !== "Thumbnail_Data") c[h] = r[h] || "";
             });
             if (r.Photo_Name) c[photoHeader] = r.Photo_Name;
             return c; 
@@ -585,12 +562,27 @@
 
         root.file("Data.xlsx", XLSX.write({SheetNames:["Data"], Sheets:{"Data":XLSX.utils.json_to_sheet(clean)}}, {bookType:'xlsx', type:'array'}));
         
-        globalData.forEach(r => {
+        // Loop through data using a FOR loop to allow AWAIT
+        for (const r of globalData) {
             if(r.Photo_Data && r.Photo_Data.startsWith('data:image')) {
                 const fName = r.Photo_Name || `p_${Date.now()}.jpg`;
+                
+                // 1. SAVE FULL IMAGE
                 imgDir.file(fName, r.Photo_Data.split(',')[1], {base64:true});
+                
+                // 2. ENSURE THUMBNAIL EXISTS
+                let thumbData = r.Thumbnail_Data;
+                
+                // If missing (old data), generate it NOW
+                if (!thumbData) {
+                    thumbData = await createThumbnail(r.Photo_Data, 180);
+                    r.Thumbnail_Data = thumbData; // Save back to object for next time
+                }
+
+                // 3. SAVE THUMBNAIL
+                thumbDir.file(fName, thumbData.split(',')[1], {base64:true});
             }
-        });
+        }
 
         zip.generateAsync({type:"blob"}).then(blob => {
             const a = document.createElement("a");
@@ -603,7 +595,6 @@
         });
     }
 
-    // --- SETTINGS & SUMMARY (Unchanged) ---
     function showSummary() {
         if(!globalData.length) return alert("Load data first");
         const container = document.getElementById('summaryBody');
@@ -611,7 +602,6 @@
         const wrap = container.querySelector('.summary-container');
         const total = globalData.length;
         const withPhoto = globalData.filter(r => r.Photo_Data).length;
-        
         wrap.innerHTML += `
             <div class="summary-card" style="background: #e0e7ff; border-color: #c7d2fe;">
                 <strong class="summary-title" style="color:#4338ca; border-color:#c7d2fe;">Global Overview</strong>
@@ -621,24 +611,15 @@
                     <div class="stat-item"><span class="stat-label">Photos Missing</span><span class="stat-val" style="color:var(--accent)">${total - withPhoto}</span></div>
                 </div>
             </div>`;
-
-        const validFields = displayOrder.filter(k => k !== "Photo_Data" && k !== "Photo_Name");
+        const validFields = displayOrder.filter(k => k !== "Photo_Data" && k !== "Photo_Name" && k !== "Thumbnail_Data");
         validFields.forEach(h => {
-            let filled = 0;
-            let empty = 0;
-            const valueCounts = {};
-            globalData.forEach(row => {
-                const val = String(row[h] || "").trim();
-                if(val) { filled++; valueCounts[val] = (valueCounts[val] || 0) + 1; } else { empty++; }
-            });
+            let filled = 0; let empty = 0; const valueCounts = {};
+            globalData.forEach(row => { const val = String(row[h] || "").trim(); if(val) { filled++; valueCounts[val] = (valueCounts[val] || 0) + 1; } else { empty++; } });
             const unique = Object.keys(valueCounts).length;
-            let topVal = "-";
-            let topCount = 0;
+            let topVal = "-"; let topCount = 0;
             Object.entries(valueCounts).forEach(([k, v]) => { if(v > topCount) { topVal = k; topCount = v; } });
-            
             let displayTop = `${topVal} <span style="font-weight:400; font-size:0.8em; color:#94a3b8;">(${topCount})</span>`;
             if (filled === 0) displayTop = "<span style='color:#cbd5e1'>Empty Column</span>";
-            
             wrap.innerHTML += `
                 <div class="summary-card">
                     <strong class="summary-title">${h}</strong>
@@ -658,7 +639,7 @@
         const container = document.getElementById('reorderContainer');
         container.innerHTML = "";
         displayOrder.forEach((header, index) => {
-            if(header === "Photo_Data" || header === "Photo_Name") return;
+            if(header === "Photo_Data" || header === "Photo_Name" || header === "Thumbnail_Data") return;
             const item = document.createElement('div');
             item.className = 'reorder-item';
             let badge = "";
