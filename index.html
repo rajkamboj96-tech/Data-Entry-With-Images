@@ -2,735 +2,718 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>App Default Pro</title>
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometry Calculator (Multi-Method Support)</title>
     <style>
-        :root { 
-            --primary: #6366f1; 
-            --bg: #f8fafc; 
-            --card-bg: #ffffff; 
-            --border: #f1f5f9; 
-            --success: #34d399; 
-            --accent: #f472b6; 
-            --danger: #ef4444;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #38b000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
-        
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: #334155; user-select: none; }
 
-        header { 
-            background: linear-gradient(135deg, var(--primary), var(--accent)); 
-            color: white; padding: 18px; display: flex; justify-content: space-between; align-items: center; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        #app-container {
+            width: 100%;
+            max-width: 600px; 
+            height: 100%;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            overflow: hidden;
+            margin: 0 auto;
+            position: relative; 
         }
-        
-        .header-btns { display: flex; gap: 8px; align-items: center; }
-        .icon-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 1.2rem; line-height: 1; }
 
-        .entry-options { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; background: white; border-bottom: 1px solid var(--border); }
-        .opt-card { border: 2px dashed #cbd5e1; padding: 20px; text-align: center; border-radius: 16px; cursor: pointer; background: #fff; transition: 0.3s; }
-        
-        .search-area { padding: 12px 15px; background: white; border-bottom: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1.5fr; gap: 10px; align-items: center; }
-        .search-select { padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; outline: none; background: #f1f5f9; font-weight: 600; color: var(--primary); width: 100%; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236366f1%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right .7em top 50%; background-size: .65em auto; }
-        .search-input-group { display: flex; gap: 5px; width: 100%; }
-        .search-bar { padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; outline: none; background: #f8fafc; width: 100%; }
+        #shape-grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px; 
+            padding: 12px;
+            overflow-y: auto;
+        }
 
-        #dataList { padding: 15px; display: grid; gap: 15px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-        .card { background: white; border-radius: 16px; padding: 12px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); cursor: pointer; border: 1px solid #f1f5f9; touch-action: pan-y; -webkit-tap-highlight-color: transparent; transition: transform 0.1s; }
-        .card:active { transform: scale(0.98); }
-        .card-img { width: 65px; height: 65px; border-radius: 12px; object-fit: cover; background: #f1f5f9; flex-shrink: 0; }
-        
-        .fab { position: fixed; bottom: 85px; right: 20px; width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 15px rgba(99, 102, 241, 0.4); font-size: 32px; border: none; z-index: 100; }
+        .shape-button {
+            background-color: #6a1b9a;
+            color: #d1c4e9;
+            border: 3px solid transparent; 
+            border-image: linear-gradient(to bottom right, #a5d6a7 0%, #a5d6a7 100%) 1;
+            border-radius: 8px;
+            font-size: 0.85rem; 
+            text-align: center;
+            padding: 8px 5px; 
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 85px; 
+        }
 
-        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center; padding: 10px; box-sizing: border-box; }
-        .modal-content { background:white; width:100%; max-width:500px; padding:20px; border-radius:20px; max-height:90vh; overflow-y:auto; position: relative; }
-        
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; color: #94a3b8; cursor: pointer; z-index: 10; line-height: 1; transition: 0.2s; }
-        .close-btn:hover { color: var(--danger); transform: scale(1.1); }
-        .close-btn-overlay { position: absolute; top: 30px; right: 30px; font-size: 45px; font-weight: bold; color: white; cursor: pointer; z-index: 2000; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        .shape-button:hover {
+            background-color: #7b1fa2;
+            transform: scale(1.03);
+            color: #ffffff; 
+        }
 
-        .form-group { display: flex; align-items: center; margin-bottom: 0; border-bottom: 1px solid #f1f5f9; padding: 0; }
-        .form-group:last-child { border-bottom: none; }
-        .form-group label { display: block; flex: 0 0 35%; font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; padding: 15px 5px 15px 0; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
-        .form-group input { flex: 1; width: 100%; padding: 15px 0; border: none; background: transparent; font-size: 1rem; color: #334155; outline: none; }
-        .form-group input:focus { background: rgba(99, 102, 241, 0.05); }
-        .form-group input::placeholder { color: #cbd5e1; font-style: italic; opacity: 1; }
+        .shape-button.full-width {
+            grid-column: 1 / span 2;
+        }
 
-        .summary-container { display: flex; flex-direction: column; gap: 12px; }
-        .summary-card { background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .summary-title { font-weight: bold; color: var(--primary); margin-bottom: 10px; display: block; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; font-size: 0.95rem; }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.85rem; }
-        .stat-item { display: flex; justify-content: space-between; align-items: center; }
-        .stat-label { color: #64748b; }
-        .stat-val { font-weight: 700; color: #334155; }
+        .punjabi-text {
+            display: block;
+            margin-bottom: 2px;
+            font-weight: bold;
+            font-size: 0.95em;
+        }
 
-        .reorder-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; margin-bottom: 8px; border-radius: 10px; }
-        .reorder-btns { display: flex; gap: 5px; }
-        .reorder-btn { padding: 8px 12px; background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
+        .english-text {
+            display: block;
+            font-size: 0.8em; 
+        }
 
-        .footer { position: fixed; bottom: 0; width: 100%; background: white; padding: 15px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
-        .btn { padding: 12px 18px; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; }
-        .btn-zip { background: var(--success); color: white; }
-        .hidden { display: none !important; }
+        .shape-icon {
+            width: 56px; 
+            height: 56px; 
+            margin-top: 5px; 
+            opacity: 0.9; 
+            transition: opacity 0.3s;
+            display: block;
+        }
 
-        .context-btn { width: 100%; padding: 15px; text-align: left; background: white; border: none; border-bottom: 1px solid #f1f5f9; font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 10px; }
-        .context-btn:last-child { border-bottom: none; }
-        .context-btn:hover { background: #f8fafc; }
+        .shape-button:hover .shape-icon {
+            opacity: 1; 
+        }
+
+        .shape-icon path, .shape-icon rect, .shape-icon polygon, .shape-icon circle, .shape-icon ellipse {
+            stroke-width: 2.5; 
+            fill: none;
+            stroke: currentColor;
+        }
+
+        #input-results-area {
+            display: none;
+            background-color: rgba(0, 0, 0, 0.95);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            flex-direction: column;
+            padding: 20px;
+            color: white;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        #input-results-area.show {
+            display: flex;
+        }
+
+        #mini-back-btn {
+            align-self: flex-start;
+            background-color: transparent;
+            color: #ccc;
+            border: 1px solid #ccc;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #mini-back-btn:hover {
+            color: white;
+            border-color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        #shape-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            border-bottom: 2px solid white;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        #inputs-container {
+            margin-bottom: 20px;
+        }
+
+        .calc-section h3 {
+            color: #a5d6a7;
+            font-size: 1.1rem;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 8px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #eee;
+            box-sizing: border-box;
+        }
+
+        .calc-btn {
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%; 
+            background-color: #6a1b9a;
+            color: white;
+            margin-top: 5px;
+        }
+
+        .calc-btn:hover {
+            background-color: #7b1fa2;
+        }
+
+        .results-container {
+            margin-top: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px; 
+        }
+
+        .results-container h4 {
+            margin-top: 0;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 5px;
+        }
+
+        .result-label {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-<header>
-    <div style="display: flex; flex-direction: column;">
-        <h1 style="font-size: 1.2rem; margin:0; font-weight: 800;">
-            App Default Pro 
-            <span style="font-size: 10px; font-weight: 400; margin-left: 8px; opacity: 0.9;">made by Raj Kamboj 9465428299</span>
-        </h1>
+<div id="app-container">
+    <div id="shape-grid-container">
+        <button class="shape-button" data-shape="square">
+            <span class="english-text">SQUARE</span>
+            <span class="punjabi-text">(ਵਰਗ)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32"><rect x="6" y="6" width="20" height="20"/></svg>
+        </button>
+        <button class="shape-button" data-shape="rectangle">
+            <span class="english-text">RECTANGLE</span>
+            <span class="punjabi-text">(ਆਇਤ)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32"><rect x="2" y="10" width="28" height="12"/></svg>
+        </button>
+        <button class="shape-button full-width" data-shape="rhombus">
+            <span class="english-text">Rhombus</span>
+            <span class="punjabi-text">(ਸਮ-ਚਤੁਰਭੁਜ)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32"><polygon points="16,4 28,16 16,28 4,16"/></svg>
+        </button>
+        <button class="shape-button full-width" data-shape="parallelogram">
+            <span class="english-text">Parallelogram</span>
+            <span class="punjabi-text">(ਸਮਾਂਤਰ-ਚਤੁਰਭੁਜ)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32"><polygon points="8,8 28,8 24,24 4,24"/></svg>
+        </button>
+        <button class="shape-button" data-shape="trapezoid">
+            <span class="punjabi-text">ਸਮਲੰਬ ਚਤੁਰਭੁਜ</span>
+            <span class="english-text">(Trapezoid)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32"><polygon points="10,8 22,8 28,24 4,24"/></svg>
+        </button>
+        <button class="shape-button" data-shape="triangle">
+            <span class="punjabi-text">ਤਿਕੋਣ</span>
+            <span class="english-text">(Triangle)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32"><polygon points="16,4 28,26 4,26"/></svg>
+        </button>
+        <button class="shape-button" data-shape="rightTriangle">
+            <span class="punjabi-text">ਸਮਕੋਣੀ ਤਿਕੋਣ</span>
+            <span class="english-text">(Right Angle)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32"><polygon points="6,4 6,26 26,26"/></svg>
+        </button>
+        <button class="shape-button" data-shape="circle">
+            <span class="punjabi-text">ਚੱਕਰ</span>
+            <span class="english-text">(Circle)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11"/></svg>
+        </button>
+        <button class="shape-button" data-shape="cube">
+            <span class="punjabi-text">ਘਣ</span>
+            <span class="english-text">(Cube)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32">
+                <path d="M16,6 L26,11 L26,21 L16,26 L6,21 L6,11 Z" stroke-linejoin="round"/>
+                <path d="M16,6 L16,16 L26,11 M16,16 L6,11 M16,16 L16,26" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        <button class="shape-button" data-shape="cuboid">
+            <span class="punjabi-text">ਘਣਾਵ</span>
+            <span class="english-text">(Cuboid)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32">
+                <rect x="4" y="14" width="16" height="10"/>
+                <path d="M4,14 L10,8 L26,8 L26,18 L20,24" stroke-linejoin="round"/>
+                <path d="M20,14 L26,8"/>
+            </svg>
+        </button>
+        <button class="shape-button" data-shape="cylinder">
+            <span class="punjabi-text">ਬੇਲਣ</span>
+            <span class="english-text">(Cylinder)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32">
+                <ellipse cx="16" cy="8" rx="10" ry="4"/>
+                <path d="M6,8 L6,24 A10,4 0 0,0 26,24 L26,8"/>
+            </svg>
+        </button>
+        <button class="shape-button" data-shape="pyramid">
+            <span class="punjabi-text">ਪਿਰਾਮਿੰਡ</span>
+            <span class="english-text">(Pyramid)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32">
+                <path d="M16,4 L4,24 L28,24 Z M16,4 L16,24" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        <button class="shape-button" data-shape="cone">
+            <span class="punjabi-text">ਸ਼ੰਕੂ</span>
+            <span class="english-text">(Cone)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32">
+                <path d="M16,4 L6,24 A10,4 0 0,0 26,24 Z" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        <button class="shape-button" data-shape="sphere">
+            <span class="punjabi-text">ਗੋਲਾ</span>
+            <span class="english-text">(Sphere)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32">
+                <circle cx="16" cy="16" r="10"/>
+                <ellipse cx="16" cy="16" rx="10" ry="4"/>
+            </svg>
+        </button>
+        <button class="shape-button" data-shape="hemisphere">
+            <span class="punjabi-text">ਅਰਧ ਗੋਲਾ</span>
+            <span class="english-text">(Hemisphere)</span>
+            <svg class="shape-icon" viewBox="0 0 32 32">
+                <path d="M6,16 A10,10 0 0,0 26,16"/>
+                <ellipse cx="16" cy="16" rx="10" ry="3"/>
+            </svg>
+        </button>
+        <button class="shape-button" data-shape="torus">
+            <span class="punjabi-text">ਟਿਊਬ TORUS</span>
+            <svg class="shape-icon" viewBox="0 0 32 32">
+                <ellipse cx="16" cy="16" rx="12" ry="6"/>
+                <ellipse cx="16" cy="16" rx="5" ry="2"/>
+            </svg>
+        </button>
     </div>
-    <div class="header-btns">
-        <button class="icon-btn" onclick="openSettings()" title="Header Settings">⚙️</button>
-        <button onclick="clearData()" style="background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.5); color:white; border-radius:8px; padding:6px 12px; cursor: pointer; font-size: 0.8rem;">Reset</button>
+
+    <div id="input-results-area">
+        <button id="mini-back-btn">&larr; Back</button>
+        <h2 id="shape-title"></h2>
+        <div id="inputs-container">
+            </div>
     </div>
-</header>
-
-<div class="entry-options" id="setupArea">
-    <div class="opt-card" onclick="document.getElementById('excelInput').click()">
-        <strong>Step 1: Excel</strong>
-        <input type="file" id="excelInput" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleExcel(this)">
-    </div>
-    <div class="opt-card" onclick="document.getElementById('zipInput').click()">
-        <strong>Step 2: ZIP</strong>
-        <input type="file" id="zipInput" accept=".zip" class="hidden" onchange="handleZip(this)">
-    </div>
-</div>
-
-<div class="search-area">
-    <select id="filterColumn" class="search-select" onchange="onFilterChange()">
-        <option value="all">Show All Records</option>
-    </select>
-    
-    <div class="search-input-group">
-        <input type="text" class="search-bar" id="search" placeholder="Type to find..." onkeyup="filterList()">
-        <button onclick="showSummary()" style="border:none; background: #e0e7ff; color:var(--primary); border-radius:10px; width:45px; cursor:pointer; font-size: 1.2rem;">📊</button>
-    </div>
-</div>
-
-<div id="dataList"></div>
-
-<button id="addFab" class="fab hidden" onclick="openModalForNew()">+</button>
-
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="closeModal()">&times;</span>
-        <div style="display:flex; gap:15px; margin-bottom:20px; padding-right: 40px; align-items: center;">
-            <img id="editPreview" style="width:60px; height:60px; border-radius:12px; object-fit:cover; border: 1px solid #eee; cursor:pointer;" onclick="showFullImageFromPreview()">
-            <input type="file" accept="image/*" onchange="processPhoto(this)">
-        </div>
-        <div id="editFields" style="border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9;"></div>
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <button class="btn" onclick="saveRecord()" style="background:var(--primary); color:white; flex: 2;">Save</button>
-            <button class="btn" onclick="deleteFromModal()" style="background:var(--danger); color:white; flex: 1;">Delete</button>
-            <button class="btn" onclick="closeModal()" style="background:#f1f5f9; color: #64748b; flex: 1;">Cancel</button>
-        </div>
-    </div>
-</div>
-
-<div id="contextModal" class="modal" style="align-items: flex-end; padding: 0;">
-    <div class="modal-content" style="width: 100%; max-width: 100%; border-radius: 20px 20px 0 0; padding: 0; overflow: hidden;">
-        <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #64748b; display: flex; justify-content: space-between;">
-            <span>Options</span>
-            <span onclick="closeContextModal()" style="cursor: pointer;">&times;</span>
-        </div>
-        <button class="context-btn" onclick="copyCardData()"><span>📋</span> Copy Text</button>
-        <button class="context-btn" onclick="duplicateRecord()"><span>📑</span> Duplicate Record</button>
-        <button class="context-btn" onclick="deleteFromContext()" style="color: var(--danger);"><span>🗑</span> Delete</button>
-        <div style="height: 20px;"></div>
-    </div>
-</div>
-
-<div id="settingsModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="closeSettings()">&times;</span>
-        <h3 style="margin-top:0">Interface Settings</h3>
-        <p style="font-size:0.8rem; color:#64748b;">1. <b>First Item:</b> Bold Title.<br>2. <b>Second Item:</b> Subtitle.</p>
-        <div id="reorderContainer"></div>
-        <button class="btn" onclick="closeSettings()" style="width:100%; margin-top:20px; background:var(--primary); color:white;">Done & Apply</button>
-    </div>
-</div>
-
-<div id="summaryModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="document.getElementById('summaryModal').style.display='none'">&times;</span>
-        <h3 style="margin-top: 0; border-bottom:1px solid #eee; padding-bottom:10px;">Detailed Analytics</h3>
-        <div id="summaryBody"></div>
-        <button class="btn" onclick="this.parentElement.parentElement.style.display='none'" style="width:100%; margin-top:20px; background:var(--primary); color:white;">Close</button>
-    </div>
-</div>
-
-<div id="imageModal" class="modal" onclick="this.style.display='none'" style="background:rgba(0,0,0,0.9);">
-    <span class="close-btn-overlay" onclick="document.getElementById('imageModal').style.display='none'">&times;</span>
-    <img id="fullImageDisplay" style="max-width:95%; max-height:80vh; border-radius:12px;">
-</div>
-
-<div class="footer">
-    <span id="status">Waiting for data...</span>
-    <button class="btn btn-zip" onclick="exportZip()">Download ZIP</button>
 </div>
 
 <script>
-    let globalData = [];
-    let currentHeaders = []; 
-    let displayOrder = [];   
-    let editIdx = -1;
-    let contextIdx = -1; 
-    let db; 
-    let pressTimer; 
-    let appPassword = ""; 
-    
-    const DB_NAME = "BoothProDB";
-    const STORE_NAME = "ProjectStore";
-    let tempFullImage = null;
-    let tempThumbImage = null;
-
-    function openDB() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open(DB_NAME, 1);
-            request.onupgradeneeded = (e) => {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
-            };
-            request.onsuccess = (e) => { db = e.target.result; resolve(db); };
-            request.onerror = (e) => reject("DB Error");
-        });
-    }
-
-    async function saveData() {
-        if(!db) await openDB();
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction(STORE_NAME, "readwrite");
-            const store = tx.objectStore(STORE_NAME);
-            const dataToSave = { id: "current", d: globalData, h: currentHeaders, order: displayOrder, pass: appPassword };
-            const req = store.put(dataToSave, "current");
-            req.onsuccess = () => {
-                document.getElementById('status').innerText = "Data Saved Securely";
-                setTimeout(() => document.getElementById('status').innerText = `${globalData.length} Records`, 2000);
-                resolve();
-            };
-            req.onerror = () => reject("Save failed");
-        });
-    }
-
-    async function loadData() {
-        if(!db) await openDB();
-        return new Promise((resolve) => {
-            const tx = db.transaction(STORE_NAME, "readonly");
-            const store = tx.objectStore(STORE_NAME);
-            const req = store.get("current");
-            req.onsuccess = () => {
-                if(req.result) {
-                    globalData = req.result.d;
-                    currentHeaders = req.result.h;
-                    displayOrder = req.result.order || [...currentHeaders];
-                    appPassword = req.result.pass || "";
-                    initApp();
+    // Updated Database: Now supports "sections" for multiple forms in one shape
+    const shapeData = {
+        'square': {
+            titlePa: 'ਵਰਗ', titleEn: 'Square',
+            sections: [{
+                name: '',
+                inputs: [{ key: 'side', label: 'Side Length (s)' }],
+                formulas: [
+                    { key: 'Area', pa: 'ਖੇਤਰਫਲ', calc: (data) => data.side ** 2 },
+                    { key: 'Perimeter', pa: 'ਪਰਿਮਾਪ', calc: (data) => 4 * data.side }
+                ]
+            }]
+        },
+        'rectangle': {
+            titlePa: 'ਆਇਤ', titleEn: 'Rectangle',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'length', label: 'Length (l)' },
+                    { key: 'width', label: 'Width (w)' }
+                ],
+                formulas: [
+                    { key: 'Area', pa: 'ਖੇਤਰਫਲ', calc: (data) => data.length * data.width },
+                    { key: 'Perimeter', pa: 'ਪਰਿਮਾਪ', calc: (data) => 2 * (data.length + data.width) }
+                ]
+            }]
+        },
+        'rhombus': {
+            titlePa: 'ਸਮ-ਚਤੁਰਭੁਜ', titleEn: 'Rhombus',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'base', label: 'Base (b)' },
+                    { key: 'height', label: 'Height (h)' }
+                ],
+                formulas: [
+                    { key: 'Area', pa: 'ਖੇਤਰਫਲ', calc: (data) => data.base * data.height },
+                    { key: 'Perimeter', pa: 'ਪਰਿਮਾਪ', calc: (data) => 4 * data.base }
+                ]
+            }]
+        },
+        'parallelogram': {
+            titlePa: 'ਸਮਾਂਤਰ-ਚਤੁਰਭੁਜ', titleEn: 'Parallelogram',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'base', label: 'Base (b)' },
+                    { key: 'side', label: 'Side length (s)' },
+                    { key: 'height', label: 'Height (h)' }
+                ],
+                formulas: [
+                    { key: 'Area', pa: 'ਖੇਤਰਫਲ', calc: (data) => data.base * data.height },
+                    { key: 'Perimeter', pa: 'ਪਰਿਮਾਪ', calc: (data) => 2 * (data.base + data.side) }
+                ]
+            }]
+        },
+        'trapezoid': {
+            titlePa: 'ਸਮਲੰਬ ਚਤੁਰਭੁਜ', titleEn: 'Trapezoid',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'base1', label: 'Base 1 (b1)' },
+                    { key: 'base2', label: 'Base 2 (b2)' },
+                    { key: 'height', label: 'Height (h)' },
+                    { key: 'side1', label: 'Non-parallel side 1 (s1)' },
+                    { key: 'side2', label: 'Non-parallel side 2 (s2)' }
+                ],
+                formulas: [
+                    { key: 'Area', pa: 'ਖੇਤਰਫਲ', calc: (data) => (0.5 * (data.base1 + data.base2) * data.height) },
+                    { key: 'Perimeter', pa: 'ਪਰਿਮਾਪ', calc: (data) => data.base1 + data.base2 + data.side1 + data.side2 }
+                ]
+            }]
+        },
+        'triangle': {
+            titlePa: 'ਤਿਕੋਣ', titleEn: 'Triangle',
+            sections: [
+                {
+                    name: 'Method 1: Base & Height',
+                    inputs: [
+                        { key: 'base', label: 'Base (b)' },
+                        { key: 'height', label: 'Height (h)' }
+                    ],
+                    formulas: [
+                        { key: 'Area', pa: 'ਖੇਤਰਫਲ', calc: (data) => (data.base * data.height) / 2 }
+                    ]
+                },
+                {
+                    name: "Method 2: 3 Sides (Heron's Formula)",
+                    inputs: [
+                        { key: 'side1', label: 'Side 1' },
+                        { key: 'side2', label: 'Side 2' },
+                        { key: 'side3', label: 'Side 3' }
+                    ],
+                    formulas: [
+                        { key: 'Area', pa: 'ਖੇਤਰਫਲ', calc: (data) => {
+                            const s = (data.side1 + data.side2 + data.side3) / 2;
+                            return Math.sqrt(s * (s - data.side1) * (s - data.side2) * (s - data.side3));
+                        }},
+                        { key: 'Perimeter', pa: 'ਪਰਿਮਾਪ', calc: (data) => data.side1 + data.side2 + data.side3 }
+                    ]
                 }
-                resolve();
-            };
-            req.onerror = () => resolve(null);
-        });
-    }
-
-    async function clearData() { 
-        if (appPassword) {
-            const input = prompt("This project is password protected.\nEnter password to reset:");
-            if (input !== appPassword) {
-                return alert("Incorrect password or Cancelled. Reset Aborted.");
-            }
+            ]
+        },
+        'rightTriangle': {
+            titlePa: 'ਸਮਕੋਣੀ ਤਿਕੋਣ', titleEn: 'Right Angle Triangle',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'base', label: 'Base (b)' },
+                    { key: 'height', label: 'Height (h)' }
+                ],
+                formulas: [
+                    { key: 'Area', pa: 'ਖੇਤਰਫਲ', calc: (data) => (data.base * data.height) / 2 },
+                    { key: 'Perimeter', pa: 'ਪਰਿਮਾਪ', calc: (data) => data.base + data.height + Math.sqrt(data.base**2 + data.height**2) },
+                    { key: 'Hypotenuse', pa: 'ਕਰਣ', calc: (data) => Math.sqrt(data.base**2 + data.height**2) }
+                ]
+            }]
+        },
+        'circle': {
+            titlePa: 'ਚੱਕਰ', titleEn: 'Circle',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'radius', label: 'Radius (r)' }
+                ],
+                formulas: [
+                    { key: 'Area', pa: 'ਖੇਤਰਫਲ', calc: (data) => Math.PI * data.radius ** 2 },
+                    { key: 'Circumference (Perimeter)', pa: 'ਪਰਿਮਾਪ', calc: (data) => 2 * Math.PI * data.radius }
+                ]
+            }]
+        },
+        'cube': {
+            titlePa: 'ਘਣ', titleEn: 'Cube',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'side', label: 'Side length (s)' }
+                ],
+                formulas: [
+                    { key: 'Volume', pa: 'ਆਇਤਨ', calc: (data) => data.side ** 3 },
+                    { key: 'Full Area (Surface)', pa: 'ਪੂਰਾ ਖੇਤਰਫਲ', calc: (data) => 6 * data.side ** 2 },
+                    { key: 'Side Area (Lateral)', pa: 'ਵਕਰ ਖੇਤਰਫਲ', calc: (data) => 4 * data.side ** 2 }
+                ]
+            }]
+        },
+        'cuboid': {
+            titlePa: 'ਘਣਾਵ', titleEn: 'Cuboid',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'length', label: 'Length (l)' },
+                    { key: 'width', label: 'Width (w)' },
+                    { key: 'height', label: 'Height (h)' }
+                ],
+                formulas: [
+                    { key: 'Volume', pa: 'ਆਇਤਨ', calc: (data) => data.length * data.width * data.height },
+                    { key: 'Full Area (Surface)', pa: 'ਪੂਰਾ ਖੇਤਰਫਲ', calc: (data) => 2 * (data.length * data.width + data.length * data.height + data.width * data.height) },
+                    { key: 'Side Area (Lateral)', pa: 'ਵਕਰ ਖੇਤਰਫਲ', calc: (data) => 2 * data.height * (data.length + data.width) }
+                ]
+            }]
+        },
+        'cylinder': {
+            titlePa: 'ਬੇਲਣ', titleEn: 'Cylinder',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'radius', label: 'Radius (r)' },
+                    { key: 'height', label: 'Height (h)' }
+                ],
+                formulas: [
+                    { key: 'Volume', pa: 'ਆਇਤਨ', calc: (data) => Math.PI * data.radius ** 2 * data.height },
+                    { key: 'Full Area (Total Surface)', pa: 'ਪੂਰਾ ਖੇਤਰਫਲ', calc: (data) => 2 * Math.PI * data.radius * (data.radius + data.height) },
+                    { key: 'Side Area (Lateral Surface)', pa: 'ਵਕਰ ਖੇਤਰਫਲ', calc: (data) => 2 * Math.PI * data.radius * data.height }
+                ]
+            }]
+        },
+        'pyramid': {
+            titlePa: 'ਪਿਰਾਮਿੰਡ', titleEn: 'Pyramid (Square based)',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'baseSide', label: 'Base side length (s)' },
+                    { key: 'slantHeight', label: 'Slant height (sh)' },
+                    { key: 'height', label: 'Perpendicular height (h)' }
+                ],
+                formulas: [
+                    { key: 'Volume', pa: 'ਆਇਤਨ', calc: (data) => (1/3) * data.baseSide ** 2 * data.height },
+                    { key: 'Full Area (Total Surface)', pa: 'ਪੂਰਾ ਖੇਤਰਫਲ', calc: (data) => data.baseSide ** 2 + 4 * (0.5 * data.baseSide * data.slantHeight) },
+                    { key: 'Side Area (Lateral Surface)', pa: 'ਵਕਰ ਖੇਤਰਫਲ', calc: (data) => 4 * (0.5 * data.baseSide * data.slantHeight) }
+                ]
+            }]
+        },
+        'cone': {
+            titlePa: 'ਸ਼ੰਕੂ', titleEn: 'Cone',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'radius', label: 'Radius (r)' },
+                    { key: 'height', label: 'Height (h)' },
+                    { key: 'slantHeight', label: 'Slant height (sh)' }
+                ],
+                formulas: [
+                    { key: 'Volume', pa: 'ਆਇਤਨ', calc: (data) => (1/3) * Math.PI * data.radius ** 2 * data.height },
+                    { key: 'Full Area (Total Surface)', pa: 'ਪੂਰਾ ਖੇਤਰਫਲ', calc: (data) => Math.PI * data.radius * (data.radius + data.slantHeight) },
+                    { key: 'Side Area (Curved Surface)', pa: 'ਵਕਰ ਖੇਤਰਫਲ', calc: (data) => Math.PI * data.radius * data.slantHeight }
+                ]
+            }]
+        },
+        'sphere': {
+            titlePa: 'ਗੋਲਾ', titleEn: 'Sphere',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'radius', label: 'Radius (r)' }
+                ],
+                formulas: [
+                    { key: 'Volume', pa: 'ਆਇਤਨ', calc: (data) => (4/3) * Math.PI * data.radius ** 3 },
+                    { key: 'Full Area (Surface)', pa: 'ਪੂਰਾ ਖੇਤਰਫਲ', calc: (data) => 4 * Math.PI * data.radius ** 2 }
+                ]
+            }]
+        },
+        'hemisphere': {
+            titlePa: 'ਅਰਧ ਗੋਲਾ', titleEn: 'Hemisphere',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'radius', label: 'Radius (r)' }
+                ],
+                formulas: [
+                    { key: 'Volume', pa: 'ਆਇਤਨ', calc: (data) => (2/3) * Math.PI * data.radius ** 3 },
+                    { key: 'Full Area (Total Surface)', pa: 'ਪੂਰਾ ਖੇਤਰਫਲ', calc: (data) => 3 * Math.PI * data.radius ** 2 },
+                    { key: 'Side Area (Curved Surface)', pa: 'ਵਕਰ ਖੇਤਰਫਲ', calc: (data) => 2 * Math.PI * data.radius ** 2 }
+                ]
+            }]
+        },
+        'torus': {
+            titlePa: 'ਟਿਊਬ TORUS', titleEn: 'Torus',
+            sections: [{
+                name: '',
+                inputs: [
+                    { key: 'majorRadius', label: 'Major Radius (R)' },
+                    { key: 'minorRadius', label: 'Minor Radius (r)' }
+                ],
+                formulas: [
+                    { key: 'Volume', pa: 'ਆਇਤਨ', calc: (data) => 2 * Math.PI ** 2 * data.majorRadius * data.minorRadius ** 2 },
+                    { key: 'Full Area (Surface)', pa: 'ਪੂਰਾ ਖੇਤਰਫਲ', calc: (data) => 4 * Math.PI ** 2 * data.majorRadius * data.minorRadius }
+                ]
+            }]
         }
-        if(confirm("Are you sure? This will delete all data.")) { 
-            if(!db) await openDB();
-            const tx = db.transaction(STORE_NAME, "readwrite");
-            tx.objectStore(STORE_NAME).clear();
-            localStorage.clear(); 
-            location.reload(); 
-        } 
-    }
+    };
 
-    function handleExcel(input) {
-        if (!input.files || !input.files[0]) return;
-        const newPass = prompt("Set a password for this project (optional):\nClick Cancel to abort upload.");
-        if (newPass === null) {
-            input.value = ""; 
-            return; 
-        }
-        appPassword = newPass; 
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = e => {
-            const wb = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
-            const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""});
-            if(rows.length) {
-                globalData = rows;
-                currentHeaders = Object.keys(rows[0]).filter(k => k !== "Photo_Data" && k !== "Photo_Name" && k !== "Thumbnail_Data");
-                displayOrder = [...currentHeaders]; 
-                initApp();
-                saveData(); 
-            }
-        };
-        reader.readAsArrayBuffer(file);
-        input.value = ""; 
-    }
+    const gridContainer = document.getElementById('shape-grid-container');
+    const inputResultsArea = document.getElementById('input-results-area');
+    const shapeTitle = document.getElementById('shape-title');
+    const inputsContainer = document.getElementById('inputs-container');
+    const miniBackBtn = document.getElementById('mini-back-btn');
 
-    async function handleZip(input) {
-        if (!input.files || !input.files[0]) return;
-        const newPass = prompt("Set a password for this project (optional):\nClick Cancel to abort upload.");
-        if (newPass === null) {
-            input.value = ""; 
-            return;
-        }
-        appPassword = newPass;
-        const file = input.files[0];
-        document.getElementById('status').innerText = "Processing ZIP...";
+    let currentShapeKey = null;
+
+    function showInputsArea(shapeKey) {
+        currentShapeKey = shapeKey;
+        const shape = shapeData[shapeKey];
         
-        const zip = new JSZip();
-        try {
-            const contents = await zip.loadAsync(file);
-            const imgs = {};
-            const thumbs = {};
-            let rows = [];
-
-            for (const [name, file] of Object.entries(contents.files)) {
-                 if (name.match(/\.(jpg|jpeg|png)$/i) && !name.startsWith('__MACOSX')) {
-                    const simpleName = name.split('/').pop().toLowerCase();
-                    const b64 = await file.async("base64");
-                    const finalB64 = `data:image/jpeg;base64,${b64}`;
-                    if(name.includes('Thumbnails/')) {
-                        thumbs[simpleName] = finalB64;
-                    } else {
-                        imgs[simpleName] = finalB64;
-                    }
-                }
-            }
-
-            for (const [name, file] of Object.entries(contents.files)) {
-                if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
-                    const b = await file.async("uint8array");
-                    const wb = XLSX.read(b, {type:'array'});
-                    rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""});
-                    currentHeaders = Object.keys(rows[0]).filter(k => k !== "Photo_Data" && k !== "Photo_Name" && k !== "Thumbnail_Data");
-                    displayOrder = [...currentHeaders];
-                }
-            }
-
-            globalData = rows.map(r => {
-                const pCol = Object.keys(r).find(k => k.toLowerCase().includes('photo') || k.toLowerCase().includes('image'));
-                if(pCol) {
-                    const fileNameInSheet = String(r[pCol]).trim().toLowerCase();
-                    if(imgs[fileNameInSheet]) {
-                        r.Photo_Data = imgs[fileNameInSheet]; 
-                        r.Thumbnail_Data = thumbs[fileNameInSheet] || imgs[fileNameInSheet]; 
-                        r.Photo_Name = r[pCol]; 
-                    }
-                }
-                return r;
-            });
-
-            initApp();
-            saveData(); 
-        } catch(e) {
-            alert("Error reading ZIP file.");
-            console.error(e);
-        }
-        input.value = "";
-    }
-
-    function initApp() {
-        document.getElementById('setupArea').classList.add('hidden');
-        document.getElementById('addFab').classList.remove('hidden');
-        updateFilterDropdown();
-        renderList();
-    }
-
-    function createThumbnail(base64, targetWidth) {
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.src = base64;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const scale = targetWidth / img.width;
-                canvas.width = targetWidth;
-                canvas.height = img.height * scale;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                resolve(canvas.toDataURL('image/jpeg', 0.6)); 
-            };
-        });
-    }
-
-    function updateFilterDropdown() {
-        const sel = document.getElementById('filterColumn');
-        const currentVal = sel.value;
-        sel.innerHTML = '<option value="all">Show All Records</option>';
-        const headers = displayOrder.length ? displayOrder : currentHeaders;
-        headers.forEach(h => {
-            if(h !== "Photo_Data" && h !== "Photo_Name" && h !== "Thumbnail_Data") {
-                const opt = document.createElement('option');
-                opt.value = h;
-                opt.innerText = `Search ${h}`; 
-                sel.appendChild(opt);
-            }
-        });
-        if(currentVal && Array.from(sel.options).some(o => o.value === currentVal)) sel.value = currentVal;
-    }
-
-    // --- CHANGED: CLEAR TEXT BOX ON CHANGE ---
-    function onFilterChange() {
-        // Always clear text box when category changes
-        document.getElementById('search').value = ''; 
-        filterList();
-    }
-
-    // --- STRICT EXACT MATCH LOGIC (CASE INSENSITIVE) ---
-    function filterList() {
-        const selectedColumn = document.getElementById('filterColumn').value;
-        const searchText = document.getElementById('search').value.toLowerCase().trim();
+        shapeTitle.innerHTML = `${shape.titleEn} (${shape.titlePa})`;
+        inputsContainer.innerHTML = '';
         
-        const searchInput = document.getElementById('search');
-        if(selectedColumn === 'all') {
-            searchInput.placeholder = "Exact match search (all columns)...";
-        } else {
-            searchInput.placeholder = `Exact match in ${selectedColumn}...`;
-        }
-
-        const filtered = globalData.filter(row => {
-            // Case 1: GLOBAL Search (Show All)
-            if (selectedColumn === "all") {
-                if (!searchText) return true;
-                return displayOrder.some(header => {
-                    if (header === "Photo_Data" || header === "Photo_Name" || header === "Thumbnail_Data") return false;
-                    const val = String(row[header] || "").toLowerCase().trim();
-                    return val === searchText; // STRICT MATCH
-                });
+        // Dynamically build forms based on how many "sections" the shape has
+        shape.sections.forEach((section, index) => {
+            const sectionDiv = document.createElement('div');
+            sectionDiv.className = 'calc-section';
+            
+            let html = '';
+            
+            // Only add a sub-heading if there is a name (like in Triangle)
+            if (section.name) {
+                html += `<h3>${section.name}</h3>`;
             }
-
-            // Case 2: SPECIFIC Column Search
-            const cellValue = row[selectedColumn];
-            if (!cellValue || String(cellValue).trim() === "") return false;
-
-            if (searchText) {
-                const valStr = String(cellValue).toLowerCase().trim();
-                if (valStr !== searchText) return false;
-            }
-
-            return true;
-        });
-        renderList(filtered);
-    }
-
-    function renderList(data = globalData) {
-        const list = document.getElementById('dataList');
-        list.innerHTML = "";
-        document.getElementById('status').innerText = `${data.length} Records`;
-        const validFields = displayOrder.filter(k => k !== "Photo_Data" && k !== "Photo_Name" && k !== "Thumbnail_Data");
-        const titleKey = validFields[0]; 
-        const subKey = validFields[1]; 
-
-        data.forEach((row) => {
-            const originalIndex = globalData.indexOf(row);
-            const card = document.createElement('div');
-            card.className = 'card';
-            let isLongPress = false;
-            card.addEventListener('touchstart', (e) => {
-                isLongPress = false;
-                pressTimer = setTimeout(() => {
-                    isLongPress = true;
-                    if (window.navigator && window.navigator.vibrate) navigator.vibrate(50); 
-                    openContextMenu(originalIndex);
-                }, 800);
-            }, {passive: true});
-            card.addEventListener('touchend', () => clearTimeout(pressTimer));
-            card.addEventListener('touchmove', () => clearTimeout(pressTimer));
-            card.addEventListener('mousedown', () => {
-                isLongPress = false;
-                pressTimer = setTimeout(() => {
-                    isLongPress = true;
-                    openContextMenu(originalIndex);
-                }, 800);
+            
+            section.inputs.forEach(input => {
+                html += `
+                    <div class="input-group">
+                        <label for="input-${shapeKey}-${index}-${input.key}">${input.label}</label>
+                        <input type="number" id="input-${shapeKey}-${index}-${input.key}" step="any" required>
+                    </div>
+                `;
             });
-            card.addEventListener('mouseup', () => clearTimeout(pressTimer));
-            card.addEventListener('mouseleave', () => clearTimeout(pressTimer));
-            card.onclick = (e) => { if(!isLongPress) openModal(originalIndex); };
-            card.oncontextmenu = (e) => { e.preventDefault(); openContextMenu(originalIndex); return false; };
-
-            const titleVal = titleKey ? (row[titleKey] || "Empty") : "No Data";
-            const subVal = subKey ? `${subKey}: ${row[subKey] || '-'}` : "";
-            const thumbSrc = row.Thumbnail_Data || row.Photo_Data || 'https://via.placeholder.com/65';
-            const fullSrc = row.Photo_Data || thumbSrc; 
-
-            card.innerHTML = `
-                <img src="${thumbSrc}" class="card-img" onclick="showFullImage(event, '${fullSrc}')">
-                <div style="pointer-events: none;">
-                    <div style="font-weight:bold; color:var(--primary); font-size:1.1rem;">${titleVal}</div>
-                    <div style="font-size:0.85rem; color:#64748b; margin-top: 3px;">${subVal}</div>
+            
+            // Generate unique button and result area per section
+            html += `<button class="calc-btn" data-index="${index}">Calculate</button>`;
+            html += `
+                <div class="results-container" id="results-${shapeKey}-${index}" style="display: none;">
+                    <h4>Results:</h4>
+                    <div class="results-list" id="list-${shapeKey}-${index}"></div>
                 </div>
             `;
-            list.appendChild(card);
-        });
-        if(data.length === 0) list.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8;">No matches found.</div>`;
-    }
-
-    function openContextMenu(index) { contextIdx = index; document.getElementById('contextModal').style.display = 'flex'; }
-    function closeContextModal() { document.getElementById('contextModal').style.display = 'none'; contextIdx = -1; }
-
-    function copyCardData() {
-        if (contextIdx === -1) return;
-        const row = globalData[contextIdx];
-        let textToCopy = "";
-        displayOrder.forEach(h => {
-             if(h !== "Photo_Data" && h !== "Photo_Name" && h !== "Thumbnail_Data" && row[h]) textToCopy += `${h}: ${row[h]}\n`;
-        });
-        navigator.clipboard.writeText(textToCopy).then(() => { alert("Data copied to clipboard!"); closeContextModal(); });
-    }
-
-    function duplicateRecord() {
-        if (contextIdx === -1) return;
-        const original = globalData[contextIdx];
-        const copy = {...original}; 
-        const firstKey = displayOrder.find(k => k !== "Photo_Data");
-        if(firstKey) copy[firstKey] = copy[firstKey] + " - Copy";
-        globalData.splice(contextIdx + 1, 0, copy);
-        saveData(); renderList(); closeContextModal();
-    }
-
-    function deleteFromContext() {
-        if(contextIdx === -1) return;
-        if(confirm("Permanently delete this record?")) {
-            globalData.splice(contextIdx, 1);
-            saveData(); renderList(); closeContextModal();
-        }
-    }
-
-    function showFullImage(e, src) {
-        e.stopPropagation();
-        document.getElementById('fullImageDisplay').src = src;
-        document.getElementById('imageModal').style.display = 'flex';
-    }
-    
-    function showFullImageFromPreview() {
-        const src = tempFullImage || document.getElementById('editPreview').src;
-        if(src && !src.includes('placeholder')) {
-             document.getElementById('fullImageDisplay').src = src;
-             document.getElementById('imageModal').style.display = 'flex';
-        }
-    }
-
-    function openModal(i) {
-        editIdx = i;
-        const row = globalData[i];
-        const imgSrc = row.Thumbnail_Data || row.Photo_Data || "https://via.placeholder.com/100";
-        document.getElementById('editPreview').src = imgSrc;
-        tempFullImage = row.Photo_Data; 
-        tempThumbImage = row.Thumbnail_Data;
-        const container = document.getElementById('editFields');
-        container.innerHTML = "";
-        displayOrder.forEach(h => {
-            if(h === "Photo_Data" || h === "Photo_Name" || h === "Thumbnail_Data") return;
-            container.innerHTML += `<div class="form-group"><label>${h}</label><input type="text" id="edit-${h}" value="${row[h] || ''}" placeholder="Enter ${h}"></div>`;
-        });
-        document.getElementById('editModal').style.display = 'flex';
-    }
-
-    function openModalForNew() {
-        editIdx = -1;
-        tempFullImage = null;
-        tempThumbImage = null;
-        document.getElementById('editPreview').src = "https://via.placeholder.com/100";
-        const container = document.getElementById('editFields');
-        container.innerHTML = "";
-        displayOrder.forEach(h => {
-            if(h === "Photo_Data" || h === "Photo_Name" || h === "Thumbnail_Data") return;
-            container.innerHTML += `<div class="form-group"><label>${h}</label><input type="text" id="edit-${h}" value="" placeholder="Enter ${h}"></div>`;
-        });
-        document.getElementById('editModal').style.display = 'flex';
-    }
-
-    function deleteFromModal() {
-        if (editIdx === -1) return;
-        if(confirm("Are you sure you want to delete this record?")) {
-            globalData.splice(editIdx, 1);
-            saveData(); renderList(); closeModal();
-        }
-    }
-
-    function processPhoto(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const fullBase64 = e.target.result;
-                tempFullImage = fullBase64;
-                const thumbBase64 = await createThumbnail(fullBase64, 180);
-                tempThumbImage = thumbBase64;
-                document.getElementById('editPreview').src = thumbBase64;
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    function saveRecord() {
-        let row = editIdx === -1 ? {} : globalData[editIdx];
-        if(editIdx === -1) globalData.push(row);
-        displayOrder.forEach(h => {
-            const val = document.getElementById(`edit-${h}`);
-            if(val) row[h] = val.value;
-        });
-        if(tempFullImage) {
-            row.Photo_Data = tempFullImage;
-            row.Thumbnail_Data = tempThumbImage; 
-            if (row.Photo_Data.startsWith('data:image') && !row.Photo_Name) row.Photo_Name = `p_${Date.now()}.jpg`;
-        }
-        closeModal(); renderList(); saveData(); 
-    }
-
-    async function exportZip() {
-        document.getElementById('status').innerText = "Creating ZIP... (Please Wait)";
-        const d = new Date();
-        const timeStr = `${d.getFullYear()}${d.getMonth()+1}${d.getDate()}_${d.getHours()}${d.getMinutes()}${d.getSeconds()}`;
-        const finalName = `Project_${timeStr}.zip`;
-        const zip = new JSZip();
-        
-        const root = zip.folder("Project");
-        const imgDir = root.folder("Images");      
-        const thumbDir = root.folder("Thumbnails"); 
-
-        let photoHeader = currentHeaders.find(k => k.toLowerCase().includes('photo') || k.toLowerCase().includes('image'));
-        if (!photoHeader) photoHeader = "Photo_Ref";
-
-        const clean = globalData.map(r => {
-            const c = {};
-            const allKeys = new Set([...currentHeaders, ...displayOrder]);
-            allKeys.forEach(h => {
-                if(h !== "Photo_Data" && h !== "Photo_Name" && h !== "Thumbnail_Data") c[h] = r[h] || "";
-            });
-            if (r.Photo_Name) c[photoHeader] = r.Photo_Name;
-            return c; 
-        });
-
-        root.file("Data.xlsx", XLSX.write({SheetNames:["Data"], Sheets:{"Data":XLSX.utils.json_to_sheet(clean)}}, {bookType:'xlsx', type:'array'}));
-        
-        for (const r of globalData) {
-            if(r.Photo_Data && r.Photo_Data.startsWith('data:image')) {
-                const fName = r.Photo_Name || `p_${Date.now()}.jpg`;
-                
-                imgDir.file(fName, r.Photo_Data.split(',')[1], {base64:true});
-                
-                // GENERATE THUMBNAIL IF MISSING
-                let thumbData = r.Thumbnail_Data;
-                if (!thumbData) {
-                    thumbData = await createThumbnail(r.Photo_Data, 180);
-                    r.Thumbnail_Data = thumbData; 
-                }
-                thumbDir.file(fName, thumbData.split(',')[1], {base64:true});
+            
+            // Add visual separator if there are more sections below
+            if (index < shape.sections.length - 1) {
+                html += `<hr style="margin: 30px 0; border: 1px solid rgba(255,255,255,0.2);">`;
             }
+            
+            sectionDiv.innerHTML = html;
+            inputsContainer.appendChild(sectionDiv);
+        });
+
+        inputResultsArea.classList.add('show');
+    }
+
+    function hideInputsArea() {
+        inputResultsArea.classList.remove('show');
+    }
+
+    // Event listener attached to the parent container to handle dynamically created buttons
+    inputsContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('calc-btn')) {
+            const sectionIndex = e.target.dataset.index;
+            performCalculation(sectionIndex);
         }
+    });
 
-        zip.generateAsync({type:"blob"}).then(blob => {
-            const a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
-            a.download = finalName;
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => document.body.removeChild(a), 100);
-            document.getElementById('status').innerText = `${globalData.length} Records`;
+    function performCalculation(sectionIndex) {
+        const shape = shapeData[currentShapeKey];
+        const section = shape.sections[sectionIndex];
+        const data = {};
+        let isValid = true;
+
+        section.inputs.forEach(input => {
+            const inputElement = document.getElementById(`input-${currentShapeKey}-${sectionIndex}-${input.key}`);
+            const value = parseFloat(inputElement.value);
+            if (isNaN(value)) {
+                isValid = false;
+                alert(`Please enter a valid number for ${input.label}`);
+                return;
+            }
+            if (value <= 0) {
+                isValid = false;
+                alert(`${input.label} must be a positive number.`);
+                return;
+            }
+            data[input.key] = value;
         });
-    }
 
-    function showSummary() {
-        if(!globalData.length) return alert("Load data first");
-        const container = document.getElementById('summaryBody');
-        container.innerHTML = `<div class="summary-container"></div>`;
-        const wrap = container.querySelector('.summary-container');
-        const total = globalData.length;
-        const withPhoto = globalData.filter(r => r.Photo_Data).length;
-        wrap.innerHTML += `
-            <div class="summary-card" style="background: #e0e7ff; border-color: #c7d2fe;">
-                <strong class="summary-title" style="color:#4338ca; border-color:#c7d2fe;">Global Overview</strong>
-                <div class="stat-grid">
-                    <div class="stat-item"><span class="stat-label">Total Records</span><span class="stat-val">${total}</span></div>
-                    <div class="stat-item"><span class="stat-label">Photos Linked</span><span class="stat-val" style="color:var(--success)">${withPhoto}</span></div>
-                    <div class="stat-item"><span class="stat-label">Photos Missing</span><span class="stat-val" style="color:var(--accent)">${total - withPhoto}</span></div>
-                </div>
-            </div>`;
-        const validFields = displayOrder.filter(k => k !== "Photo_Data" && k !== "Photo_Name" && k !== "Thumbnail_Data");
-        validFields.forEach(h => {
-            let filled = 0; let empty = 0; const valueCounts = {};
-            globalData.forEach(row => { const val = String(row[h] || "").trim(); if(val) { filled++; valueCounts[val] = (valueCounts[val] || 0) + 1; } else { empty++; } });
-            const unique = Object.keys(valueCounts).length;
-            let topVal = "-"; let topCount = 0;
-            Object.entries(valueCounts).forEach(([k, v]) => { if(v > topCount) { topVal = k; topCount = v; } });
-            let displayTop = `${topVal} <span style="font-weight:400; font-size:0.8em; color:#94a3b8;">(${topCount})</span>`;
-            if (filled === 0) displayTop = "<span style='color:#cbd5e1'>Empty Column</span>";
-            wrap.innerHTML += `
-                <div class="summary-card">
-                    <strong class="summary-title">${h}</strong>
-                    <div class="stat-grid">
-                        <div class="stat-item"><span class="stat-label">Filled</span><span class="stat-val" style="color:var(--success)">${filled}</span></div>
-                        <div class="stat-item"><span class="stat-label">Empty</span><span class="stat-val" style="color:var(--accent)">${empty}</span></div>
-                        <div class="stat-item"><span class="stat-label">Unique</span><span class="stat-val">${unique}</span></div>
-                        <div class="stat-item"><span class="stat-label">Top</span><span class="stat-val">${displayTop}</span></div>
-                    </div>
-                </div>`;
+        if (!isValid) return;
+
+        const resultsList = document.getElementById(`list-${currentShapeKey}-${sectionIndex}`);
+        resultsList.innerHTML = '';
+        
+        section.formulas.forEach(formula => {
+            const result = formula.calc(data);
+            
+            // Handle invalid math gracefully (e.g. invalid Heron's formula triangles)
+            const displayValue = isNaN(result) ? "Invalid Dimensions" : result.toFixed(2);
+            
+            const resultItem = document.createElement('div');
+            resultItem.className = 'result-item';
+            resultItem.innerHTML = `
+                <span class="result-label">${formula.pa} (${formula.key}):</span>
+                <span class="result-value">${displayValue}</span>
+            `;
+            resultsList.appendChild(resultItem);
         });
-        document.getElementById('summaryModal').style.display = 'flex';
+
+        // Show specific result container for the button clicked
+        document.getElementById(`results-${currentShapeKey}-${sectionIndex}`).style.display = 'block';
     }
 
-    function openSettings() {
-        if(!currentHeaders.length && !displayOrder.length) return alert("Please load data first.");
-        const container = document.getElementById('reorderContainer');
-        container.innerHTML = "";
-        displayOrder.forEach((header, index) => {
-            if(header === "Photo_Data" || header === "Photo_Name" || header === "Thumbnail_Data") return;
-            const item = document.createElement('div');
-            item.className = 'reorder-item';
-            let badge = "";
-            if(index === 0) badge = `<span style="background:var(--primary); color:white; font-size:10px; padding:2px 6px; border-radius:4px; margin-right:5px;">TITLE</span>`;
-            if(index === 1) badge = `<span style="background:#94a3b8; color:white; font-size:10px; padding:2px 6px; border-radius:4px; margin-right:5px;">SUB</span>`;
-            item.innerHTML = `
-                <div style="display:flex; align-items:center;">${badge}<span style="font-weight:600;">${header}</span></div>
-                <div class="reorder-btns">
-                    <button class="reorder-btn" onclick="moveHeader(${index}, -1)">↑</button>
-                    <button class="reorder-btn" onclick="moveHeader(${index}, 1)">↓</button>
-                </div>`;
-            container.appendChild(item);
-        });
-        document.getElementById('settingsModal').style.display = 'flex';
-    }
+    gridContainer.addEventListener('click', (e) => {
+        const button = e.target.closest('.shape-button');
+        if (button) {
+            const shapeKey = button.dataset.shape;
+            showInputsArea(shapeKey);
+        }
+    });
 
-    function moveHeader(index, direction) {
-        const newIndex = index + direction;
-        if (newIndex < 0 || newIndex >= displayOrder.length) return;
-        [displayOrder[index], displayOrder[newIndex]] = [displayOrder[newIndex], displayOrder[index]];
-        openSettings();
-    }
-
-    function closeSettings() {
-        document.getElementById('settingsModal').style.display = 'none';
-        updateFilterDropdown();
-        renderList();
-        saveData(); 
-    }
-
-    // --- CHANGED: CLOSE MODAL RESETS SEARCH ---
-    function closeModal() { 
-        document.getElementById('editModal').style.display = 'none'; 
-        // Reset Search UI to "Show All" and clear text
-        document.getElementById('filterColumn').value = 'all';
-        document.getElementById('search').value = '';
-        filterList(); // Refresh list to show all
-    }
-
-    window.onload = () => { loadData(); };
+    miniBackBtn.addEventListener('click', hideInputsArea);
 </script>
+
 </body>
 </html>
